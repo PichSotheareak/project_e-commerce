@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class CustomerController extends Controller
 {
@@ -26,12 +27,12 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:50',
-            'gender' => 'required|string|max:6',
+            'gender' => 'nullable|string|max:6',
             'email' => 'required|email|unique:customers,email',
-            'phone' => 'required|string|max:15|unique:customers,phone',
-            'address' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:15|unique:customers,phone',
+            'address' => 'nullable|string|max:255',
             'password' => 'required|string|min:8|confirmed',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $imageCustomer = null;
@@ -73,12 +74,12 @@ class CustomerController extends Controller
         $customer = Customer::find($id);
         $request->validate([
             'name' => 'required|string|max:50',
-            'gender' => 'required|string|max:6',
+            'gender' => 'nullable|string|max:6',
             'email' => 'required|email|unique:customers,email' .$id,
-            'phone' => 'required|string|max:15|unique:customers,phone' .$id,
-            'address' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:15|unique:customers,phone' .$id,
+            'address' => 'nullable|string|max:255',
             'password' => 'required|string|min:8|confirmed',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
@@ -115,6 +116,22 @@ class CustomerController extends Controller
         $customer -> delete();
         return response()->json([
             'message' => 'Customer deleted successfully'
+        ]);
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string|confirmed|min:8',
+        ]);
+
+        if (!$token = JWTAuth::attempt($request->only('email', 'password'))) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        return response()->json([
+            'access_token' => $token,
+            'customer' => JWTAuth::customer()->load('profile')
         ]);
     }
 }

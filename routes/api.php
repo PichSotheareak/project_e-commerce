@@ -54,6 +54,7 @@ Route::apiResource("invoiceItems", InvoiceItemsController ::class);
 Route::apiResource("payments", PaymentsController::class);
 
 Route::post("auth/login", [UserController::class, "login"]);
+Route::post("login", [CustomerController::class, "login"]);
 
 Route::middleware(['auth:api'])->group(function () {
 

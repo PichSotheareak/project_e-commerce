@@ -31,7 +31,6 @@ class UserController extends Controller
             'gender' => 'nullable|string|in:male,female,other',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|confirmed|min:8',
-            'staff_id' => 'required|exists:staff,id',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'type' => 'nullable|string',
@@ -44,7 +43,6 @@ class UserController extends Controller
             'gender' => $request -> gender,
             'email' => $request -> email,
             'password' => Hash::make($request -> password),
-            'staff_id' => $request -> staff_id,
             'created_at' => now(),
         ]);
 
@@ -96,7 +94,6 @@ class UserController extends Controller
             'gender' => 'nullable|string|in:male,female,other',
             'email' => 'required|email|unique:users,email' .$id,
             'password' => 'required|string|confirmed|min:8',
-            'staff_id' => 'required|exists:staff,id',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'type' => 'nullable|string',
@@ -109,7 +106,6 @@ class UserController extends Controller
             'gender' => $request -> gender,
             'email' => $request -> email,
             'password' => Hash::make($request -> password),
-            'staff_id' => $request -> staff_id,
             'updated_at' => now(),
         ]);
 
