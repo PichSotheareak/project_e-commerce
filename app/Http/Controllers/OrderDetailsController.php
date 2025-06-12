@@ -23,7 +23,7 @@ class OrderDetailsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'product_id' => 'required|exists:product,id',
             'orders_id' => 'required|exists:orders,id',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
@@ -64,7 +64,7 @@ class OrderDetailsController extends Controller
     {
         $orderDetails = OrderDetails::find($id);
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'product_id' => 'required|exists:product,id',
             'orders_id' => 'required|exists:orders,id',
             'quantity' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
