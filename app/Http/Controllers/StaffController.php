@@ -91,12 +91,13 @@ class StaffController extends Controller
             'branches_id' => 'required|exists:branches,id',
         ]);
 
+        $profilePath = $staff->profile;
+
         if ($request->hasFile('profile')) {
             if ($staff->profile) {
                 Storage::disk('public')->delete($staff->profile);
             }
             $profile = $request->file('profile')->store('staff', 'public');
-            $profile->profile = $profile;
         }
 
         $staff->update([
@@ -104,7 +105,7 @@ class StaffController extends Controller
             'gender' => $request -> gender,
             'email' => $request -> email,
             'phone' => $request -> phone,
-            'profile' => $profile,
+            'profile' => $profilePath,
             'current_address' => $request -> current_address,
             'position' => $request -> position,
             'salary' => $request -> salary,
@@ -123,7 +124,13 @@ class StaffController extends Controller
     public function destroy(string $id)
     {
         $staff = Staff::find($id);
+
+        if (!$staff) {
+            return response()->json(['message' => 'staff not found'], 404);
+        }
+
         $staff->delete();
+
         return response()->json([
             'message' => 'Staff deleted successfully',
         ]);

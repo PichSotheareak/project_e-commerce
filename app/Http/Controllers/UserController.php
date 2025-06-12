@@ -6,6 +6,7 @@ use App\Models\Profile;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -19,6 +20,7 @@ class UserController extends Controller
         return response()->json([
             "data" => User::with('profile')->get()
         ]);
+
     }
 
     /**
@@ -30,7 +32,7 @@ class UserController extends Controller
             'name' => 'required|string|max:50',
             'gender' => 'nullable|string|in:male,female,other',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|confirmed|min:8',
+            'password' => 'required|string|min:8',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'type' => 'nullable|string',
@@ -38,32 +40,44 @@ class UserController extends Controller
 
         ]);
 
-        $user = User::create([
-            'name' => $request -> name,
-            'gender' => $request -> gender,
-            'email' => $request -> email,
-            'password' => Hash::make($request -> password),
-            'created_at' => now(),
-        ]);
+        DB::beginTransaction();
 
-        $imageUrl = null;
-        if ($request->hasFile('image')) {
-            $image = $request->file('image')->store('profile', 'public');
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'gender' => $request->gender,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'created_at' => now(),
+            ]);
+
+            $image = null;
+            if ($request->hasFile('image')) {
+                $image = $request->file('image')->store('profile', 'public');
+            }
+
+            Profile::create([
+                'user_id' => $user->id,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'type' => $request->type,
+                'image' => $image,
+                'created_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'data' => $user->load('profile'),
+                'message' => 'User created successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'error' => 'something went wrong: ' . $e->getMessage()
+            ],500);
         }
-
-        Profile::create([
-            'user_id' => $user -> id,
-            'phone' => $request -> phone,
-            'address' => $request -> address,
-            'type' => $request -> type,
-            'image' => $image,
-            'created_at' => now(),
-        ]);
-
-        return response()->json([
-            'data' => $user->load('profile')->get(),
-            'message' => 'User created successfully'
-        ]);
     }
 
     /**
@@ -92,8 +106,8 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:50',
             'gender' => 'nullable|string|in:male,female,other',
-            'email' => 'required|email|unique:users,email' .$id,
-            'password' => 'required|string|confirmed|min:8',
+            'email' => 'required|email|unique:users,email,' .$id,
+            'password' => 'required|string|min:8',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'type' => 'nullable|string',
@@ -124,7 +138,7 @@ class UserController extends Controller
             'updated_at' => now(),
         ]);
         return response()->json([
-            'data' => $user->load('profile')->get(),
+            'data' => $user->load('profile'),
             'message' => 'User updated successfully'
         ]);
     }
@@ -147,15 +161,20 @@ class UserController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|string|confirmed|min:8',
+            'password' => 'required|string|min:8',
         ]);
 
-        if (!$token = JWTAuth::attempt($request->only('email', 'password'))) {
+        $credentials = $request->only('email', 'password');
+
+        if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+
         return response()->json([
             'access_token' => $token,
-            'user' => JWTAuth::user()->load('profile')
+            'user' => JWTAuth::user()->load('profile'),
+            'message' => 'User login successfully'
         ]);
+
     }
 }

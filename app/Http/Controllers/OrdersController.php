@@ -28,9 +28,9 @@ class OrdersController extends Controller
             'branches_id' => 'required|exists:branches,id',
             'order_date' => 'required|date|date_format:Y-m-d',
             'total_amount' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,processing,completed,cancelled',
-            'payment_status' => 'required|in:pending,processing,completed,cancelled',
-            'remarks' => 'required|string|min:50',
+            'status' => 'nullable|in:pending,processing,completed,cancelled',
+            'payment_status' => 'nullable|in:pending,processing,completed,cancelled',
+            'remarks' => 'nullable|string|min:50',
         ]);
 
         $orders = Orders::create([
@@ -78,9 +78,9 @@ class OrdersController extends Controller
             'branches_id' => 'required|exists:branches,id',
             'order_date' => 'required|date|date_format:Y-m-d',
             'total_amount' => 'required|numeric|min:0',
-            'status' => 'required|in:pending,processing,completed,cancelled',
-            'payment_status' => 'required|in:pending,processing,completed,cancelled',
-            'remarks' => 'required|string|min:50',
+            'status' => 'nullable|in:pending,processing,completed,cancelled',
+            'payment_status' => 'nullable|in:pending,processing,completed,cancelled',
+            'remarks' => 'nullable|string|min:50',
         ]);
 
         $orders->update([

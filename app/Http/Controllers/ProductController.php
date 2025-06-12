@@ -25,8 +25,8 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:50',
-            'description' => 'required|string|max:200',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'description' => 'nullable|string|max:200',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'cost' => 'nullable|numeric|min:0',
             'price' => 'required|numeric|min:0',
             'inStock' => 'required|integer|min:0',
@@ -82,8 +82,8 @@ class ProductController extends Controller
         $product = Product::find($id);
         $request->validate([
             'name' => 'required|string|max:50',
-            'description' => 'required|string|max:200',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'description' => 'nullable|string|max:200',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'cost' => 'nullable|numeric|min:0',
             'price' => 'required|numeric|min:0',
             'inStock' => 'required|integer|min:0',

@@ -11,6 +11,8 @@ class Profile extends Model
     use HasFactory;
     use SoftDeletes;
 
+    protected $table = 'profile';
+
     protected $fillable = [
         'user_id',
         'phone',

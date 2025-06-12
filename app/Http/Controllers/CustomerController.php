@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -31,7 +32,7 @@ class CustomerController extends Controller
             'email' => 'required|email|unique:customers,email',
             'phone' => 'nullable|string|max:15|unique:customers,phone',
             'address' => 'nullable|string|max:255',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
@@ -46,7 +47,7 @@ class CustomerController extends Controller
             'email' => $request -> email,
             'phone' => $request -> phone,
             'address' => $request -> address,
-            'password' => $request -> password,
+            'password' => Hash::make($request -> password),
             'image' => $imageCustomer,
             'created_at' => now(),
         ]);
@@ -75,10 +76,10 @@ class CustomerController extends Controller
         $request->validate([
             'name' => 'required|string|max:50',
             'gender' => 'nullable|string|max:6',
-            'email' => 'required|email|unique:customers,email' .$id,
-            'phone' => 'nullable|string|max:15|unique:customers,phone' .$id,
+            'email' => 'required|email|unique:customers,email,' .$id,
+            'phone' => 'nullable|string|max:15|unique:customers,phone,' .$id,
             'address' => 'nullable|string|max:255',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
@@ -97,7 +98,7 @@ class CustomerController extends Controller
             'email' => $request -> email,
             'phone' => $request -> phone,
             'address' => $request -> address,
-            'password' => $request -> password,
+            'password' => Hash::make($request -> password),
             'image' => $imageCustomer,
             'updated_at' => now(),
         ]);

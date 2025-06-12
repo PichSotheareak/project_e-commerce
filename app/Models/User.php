@@ -33,7 +33,7 @@ class User extends Authenticatable implements JWTSubject
         'gender',
         'email',
         'password',
-        'staff_id',
+
     ];
 
     /**
@@ -64,11 +64,7 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Invoices::class);
     }
 
-    public function staff(){
-        return $this->belongsTo(Staff::class);
-    }
-
     public function profile(){
-        return $this->hasOne(Profile::class);
+        return $this->hasOne(Profile::class, 'user_id', 'id');
     }
 }
