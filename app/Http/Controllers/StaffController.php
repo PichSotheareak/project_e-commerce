@@ -97,7 +97,7 @@ class StaffController extends Controller
             if ($staff->profile) {
                 Storage::disk('public')->delete($staff->profile);
             }
-            $profile = $request->file('profile')->store('staff', 'public');
+            $profilePath = $request->file('profile')->store('staff', 'public');
         }
 
         $staff->update([
@@ -135,4 +135,6 @@ class StaffController extends Controller
             'message' => 'Staff deleted successfully',
         ]);
     }
+
+
 }

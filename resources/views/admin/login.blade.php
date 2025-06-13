@@ -202,7 +202,7 @@
 </head>
 <body>
 <div class="login-container">
-    <div class="brand">Cal.com</div>
+    <div class="brand">BeyNek Custom</div>
 
     <h1 class="welcome-title">Welcome back</h1>
 
@@ -251,9 +251,6 @@
         Sign in with SAML
     </button>
 
-    <div class="signup-link">
-        <a href="{{ route('register') }}">Don't have an account?</a>
-    </div>
 </div>
 </body>
 </html>

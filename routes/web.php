@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/login', [UserController::class, 'showLoginForm'])->name('login.form');
 Route::post('/login', [UserController::class, 'login'])->name('login');
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
-Route::get('/register', [UserController::class, 'showRegisterForm'])->name('register.form');
-Route::post('/register', [UserController::class, 'store'])->name('register');
-
 /*
 |--------------------------------------------------------------------------
 | Protected Routes (Authentication Required)

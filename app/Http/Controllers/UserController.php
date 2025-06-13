@@ -8,10 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Auth;
-
 
 class UserController extends Controller
 {
@@ -174,26 +170,22 @@ class UserController extends Controller
             'password' => 'required|string|min:8',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $user = User::where('email', $request->email)->first();
 
-        if (!Auth::attempt($credentials)) {
-            return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        return redirect()->route('dashboard')->with('message', 'Login successful');
+        // Create Sanctum token
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        // Return JSON response with token
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token,
+            'user' => $user,
+        ]);
     }
 
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        return redirect()->route('login')->with('message', 'Logged out successfully');
-    }
 
-    public function showLoginForm(){
-        return view('admin.login');
-    }
-
-    public function showRegisterForm(){
-        return view('admin.register');
-    }
 }

@@ -37,11 +37,10 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 //register api route
-Route::apiResource("users", UserController::class);
 Route::post("auth/login", [UserController::class, "login"]);
 Route::post("login", [CustomerController::class, "login"]);
 
-Route::middleware(['auth:api'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource("branches", BranchesController::class);
     Route::apiResource("category", CategoryController::class);
     Route::apiResource("product", ProductController::class);
@@ -56,5 +55,6 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource("invoices", InvoicesController::class);
     Route::apiResource("invoiceItems", InvoiceItemsController ::class);
     Route::apiResource("payments", PaymentsController::class);
+    Route::apiResource("users", UserController::class);
 });
 //get, get1, post, put, delete
