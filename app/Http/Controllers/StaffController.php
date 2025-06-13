@@ -80,9 +80,9 @@ class StaffController extends Controller
     {
         $staff = Staff::find($id);
         $request->validate([
-            'name' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
             'gender' => 'required|string|max:6',
-            'email' => 'required|email|unique:staff,email',
+            'email' => 'required|email|unique:staff,email,' . $id,
             'phone' => 'required|string|unique:staff,phone',
             'profile' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'current_address' => 'required|string|max:100',
