@@ -18,6 +18,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" defer></script>
 
+
     <script>
         WebFont.load({
             google: { families: ["Public Sans:300,400,500,600,700"] },
@@ -76,15 +77,9 @@
           <div class="sidebar-wrapper scrollbar scrollbar-inner">
               <div class="sidebar-content">
                   <ul class="nav nav-secondary ">
-                      <li class="nav-item active">
-                          <a
-                              data-bs-toggle="collapse"
-                              href="{{ route('dashboard') }}"
-                              class="collapsed"
-                              aria-expanded="false"
-                          >
-                              <i class="fas fa-home me-2"></i>
-                              <p>Dashboard</p>
+                      <li class="nav-item">
+                          <a  href="{{ route('dashboard') }}" class="collapsed" >
+                              <i class="fas fa-home me-2"></i><span>Dashboard</span>
                           </a>
                       </li>
                       <li class="nav-section">
@@ -161,7 +156,7 @@
                       </li>
 
                       <li class="nav-item">
-                          <a href="/staff" class="nav-link text-white d-flex align-items-center gap-2">
+                          <a href="{{ route('staff') }}" class="nav-link text-white d-flex align-items-center gap-2">
                               <i class="fas fa-user-tie me-2"></i><span>Staff</span>
                           </a>
                       </li>
@@ -687,5 +682,6 @@
         fillColor: "rgba(255, 165, 52, .14)",
     });
 </script>
+
 </body>
 </html>

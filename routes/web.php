@@ -37,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/payment-methods', 'admin.payment-methods')->name('payment.methods');
 
     Route::view('/customers', 'admin.customers')->name('customers');
-    Route::view('/staff', 'admin.staff')->name('staff');
+    Route::view('/staff', 'admin.Staff.index')->name('staff');
     Route::view('/users', 'admin.users')->name('users');
     Route::view('/profile', 'admin.profile')->name('profile');
     Route::view('/contact-us', 'admin.contact')->name('contact.us');
