@@ -37,26 +37,24 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 //register api route
-Route::apiResource("branches", BranchesController::class);
-Route::apiResource("category", CategoryController::class);
-Route::apiResource("product", ProductController::class);
-Route::apiResource("brand", BrandController::class);
-Route::apiResource("productDetails", ProductDetailsController::class);
-Route::apiResource("customer", CustomerController::class);
-Route::apiResource("paymentMethod", PaymentMethodController::class);
-Route::apiResource("contactUs", ContactUsController::class);
-Route::apiResource("staff", StaffController::class);
-Route::apiResource("users", UserController::class);
-Route::apiResource("orders", OrdersController::class);
-Route::apiResource("orderDetails", OrderDetailsController::class);
-Route::apiResource("invoices", InvoicesController::class);
-Route::apiResource("invoiceItems", InvoiceItemsController ::class);
-Route::apiResource("payments", PaymentsController::class);
-
 Route::post("auth/login", [UserController::class, "login"]);
 Route::post("login", [CustomerController::class, "login"]);
 
 Route::middleware(['auth:api'])->group(function () {
-
+    Route::apiResource("branches", BranchesController::class);
+    Route::apiResource("category", CategoryController::class);
+    Route::apiResource("product", ProductController::class);
+    Route::apiResource("brand", BrandController::class);
+    Route::apiResource("productDetails", ProductDetailsController::class);
+    Route::apiResource("customer", CustomerController::class);
+    Route::apiResource("paymentMethod", PaymentMethodController::class);
+    Route::apiResource("contactUs", ContactUsController::class);
+    Route::apiResource("staff", StaffController::class);
+    Route::apiResource("orders", OrdersController::class);
+    Route::apiResource("orderDetails", OrderDetailsController::class);
+    Route::apiResource("invoices", InvoicesController::class);
+    Route::apiResource("invoiceItems", InvoiceItemsController ::class);
+    Route::apiResource("payments", PaymentsController::class);
+    Route::apiResource("users", UserController::class);
 });
 //get, get1, post, put, delete

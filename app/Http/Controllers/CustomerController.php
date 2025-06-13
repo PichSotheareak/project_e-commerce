@@ -122,17 +122,38 @@ class CustomerController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string|confirmed|min:8',
+        // ✅ Step 1 — Validate request input
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ]);
 
-        if (!$token = JWTAuth::attempt($request->only('email', 'password'))) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        // ✅ Step 2 — Retrieve customer by email
+        $customer = Customer::where('email', $validated['email'])->first();
+
+        // ✅ Step 3 — Handle invalid credentials
+        if (!$customer || !Hash::check($validated['password'], $customer->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid email or password'
+            ], 401);
         }
+
+        // ✅ Step 4 — Prepare clean customer data to return (hide sensitive data)
+        $customerData = [
+            'id' => $customer->id,
+            'name' => $customer->name,
+            'email' => $customer->email,
+            'phone' => $customer->phone,
+            'created_at' => $customer->created_at,
+            'updated_at' => $customer->updated_at
+        ];
+
+        // ✅ Step 5 — Return success response
         return response()->json([
-            'access_token' => $token,
-            'customer' => JWTAuth::customer()->load('profile')
-        ]);
+            'success' => true,
+            'message' => 'Login successful',
+            'customer' => $customerData
+        ], 200);
     }
 }

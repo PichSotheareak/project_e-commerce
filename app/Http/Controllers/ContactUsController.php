@@ -25,16 +25,18 @@ class ContactUsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:contact_us',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:contact_us,email',
+            'phone' => 'nullable|string|max:255',
+            'message' => 'nullable|string|max:255',
         ]);
 
         $contactUs = ContactUs::create([
-            'name' => $request -> name,
+            'first_name' => $request -> first_name,
+            'last_name' => $request -> last_name,
             'email' => $request -> email,
-            'subject' => $request -> subject,
+            'phone' => $request -> phone,
             'message' => $request -> message,
             'created_at' => now(),
         ]);
@@ -61,16 +63,18 @@ class ContactUsController extends Controller
     {
         $contactUs = ContactUs::find($id);
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:contact_us',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:contact_us,email,'.$id,
+            'phone' => 'nullable|string|max:255',
+            'message' => 'nullable|string|max:255',
         ]);
 
         $contactUs->update([
-            'name' => $request -> name,
+            'first_name' => $request -> first_name,
+            'last_name' => $request -> last_name,
             'email' => $request -> email,
-            'subject' => $request -> subject,
+            'phone' => $request -> phone,
             'message' => $request -> message,
             'updated_at' => now(),
         ]);
@@ -86,7 +90,14 @@ class ContactUsController extends Controller
     public function destroy(string $id)
     {
         $contactUs = ContactUs::find($id);
+        if (!$contactUs) {
+            return response()->json([
+                'message' => 'Contact Us Not Found'
+            ]);
+        }
+
         $contactUs->delete();
+
         return response()->json([
             'message' => 'Contact Us Deleted Successfully'
         ]);
