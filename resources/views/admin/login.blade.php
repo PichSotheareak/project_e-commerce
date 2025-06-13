@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - Cal.com</title>
     <style>
+        /* (All your existing CSS, no changes) */
         * {
             margin: 0;
             padding: 0;
@@ -196,6 +197,7 @@
                 padding: 32px 24px;
             }
         }
+
     </style>
 </head>
 <body>
@@ -204,22 +206,29 @@
 
     <h1 class="welcome-title">Welcome back</h1>
 
-    <form>
+    <!-- 🔥 Here is your fixed form -->
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
+
         <div class="form-group">
             <label for="email">Email address</label>
-            <input type="email" id="email" name="email" placeholder="john.doe@example.com" required>
+            <input type="email" id="email" name="email" placeholder="example@gmail.com" required value="{{ old('email') }}">
+            @error('email')
+                <div style="color: red; font-size: 13px; margin-top: 5px;">{{ $message }}</div>
+            @enderror
         </div>
 
         <div class="form-group">
-            <div class="password-container">
-                <a href="#" class="forgot-link">Forgot?</a>
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-            </div>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            @error('password')
+                <div style="color: red; font-size: 13px; margin-top: 5px;">{{ $message }}</div>
+            @enderror
         </div>
 
         <button type="submit" class="sign-in-btn">Sign in</button>
     </form>
+
 
     <div class="divider">
         <span>or</span>
@@ -243,7 +252,7 @@
     </button>
 
     <div class="signup-link">
-        <a href="#">Don't have an account?</a>
+        <a href="{{ route('register') }}">Don't have an account?</a>
     </div>
 </div>
 </body>

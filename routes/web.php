@@ -8,7 +8,10 @@ use Illuminate\Support\Facades\Route;
 | Public Routes (No Authentication Required)
 |--------------------------------------------------------------------------
 */
+Route::get('/login', [UserController::class, 'showLoginForm'])->name('login.form');
 Route::post('/login', [UserController::class, 'login'])->name('login');
+Route::post('/logout', [UserController::class, 'logout'])->name('logout');
+Route::get('/register', [UserController::class, 'showRegisterForm'])->name('register.form');
 Route::post('/register', [UserController::class, 'store'])->name('register');
 
 /*
@@ -19,7 +22,7 @@ Route::post('/register', [UserController::class, 'store'])->name('register');
 Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/', function () {
-        return view('admin.master');
+        return view('admin.dashboard.index');
     })->name('dashboard');
 
     // Management Routes

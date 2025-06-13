@@ -203,7 +203,9 @@
     <div class="brand">Cal.com</div>
     <h1 class="welcome-title">Create your account</h1>
 
-    <form>
+    <form method="POST" action="{{ route('register') }}">
+        @csrf
+
         <div class="form-group">
             <label for="name">Full name</label>
             <input type="text" id="name" name="name" placeholder="John Doe" required />
@@ -220,8 +222,8 @@
         </div>
 
         <div class="form-group">
-            <label for="confirm-password">Confirm password</label>
-            <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required />
+            <label for="password_confirmation">Confirm password</label>
+            <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Confirm your password" required />
         </div>
 
         <button type="submit" class="sign-in-btn">Sign up</button>
@@ -240,7 +242,7 @@
     </button>
 
     <div class="signup-link">
-        Already have an account? <a href="#">Sign in</a>
+        Already have an account? <a href="{{ route('login.form') }}">Sign in</a>
     </div>
 </div>
 </body>

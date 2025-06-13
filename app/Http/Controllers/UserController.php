@@ -8,13 +8,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
+
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+
     public function index()
     {
         return response()->json([
@@ -32,7 +36,7 @@ class UserController extends Controller
             'name' => 'required|string|max:50',
             'gender' => 'nullable|string|in:male,female,other',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed',
             'status' => 'nullable|string|in:enable,disable',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
@@ -53,9 +57,11 @@ class UserController extends Controller
                 'created_at' => now(),
             ]);
 
-            $image = null;
             if ($request->hasFile('image')) {
                 $image = $request->file('image')->store('profile', 'public');
+            }
+            else{
+                $image = null;
             }
 
             Profile::create([
@@ -164,21 +170,30 @@ class UserController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|exists:users,email',
             'password' => 'required|string|min:8',
         ]);
 
         $credentials = $request->only('email', 'password');
 
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        if (!Auth::attempt($credentials)) {
+            return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
         }
 
-        return response()->json([
-            'access_token' => $token,
-            'user' => JWTAuth::user()->load('profile'),
-            'message' => 'User login successfully'
-        ]);
+        return redirect()->route('dashboard')->with('message', 'Login successful');
+    }
 
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        return redirect()->route('login')->with('message', 'Logged out successfully');
+    }
+
+    public function showLoginForm(){
+        return view('admin.login');
+    }
+
+    public function showRegisterForm(){
+        return view('admin.register');
     }
 }
