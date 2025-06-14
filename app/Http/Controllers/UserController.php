@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -177,15 +178,17 @@ class UserController extends Controller
         }
 
         // Create Sanctum token
-        $token = $user->createToken('api-token')->plainTextToken;
+        $apiToken = $user->createToken('api-token')->plainTextToken;
+
+        $user->remember_token = $apiToken;
+        $user->save();
 
         // Return JSON response with token
         return response()->json([
             'message' => 'Login successful',
-            'token' => $token,
+            'token' => $apiToken,
             'user' => $user,
         ]);
     }
-
 
 }

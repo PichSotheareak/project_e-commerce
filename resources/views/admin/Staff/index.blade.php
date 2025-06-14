@@ -421,7 +421,11 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching staff data...');
-                        const response = await axios.get(`${this.api_url}/api/staff`);
+                        const response = await axios.get(`${this.api_url}/api/staff`, {
+                            headers:{
+                                Authorization: `Bearer ${token}`,
+                            }
+                        });
                         console.log('Staff API Response:', response.data);
                         this.staffList = Array.isArray(response.data) ? response.data : (response.data.data || []);
                         this.totalStaffCount = this.staffList.length;
