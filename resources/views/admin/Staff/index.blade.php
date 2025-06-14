@@ -421,8 +421,12 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching staff data...');
-                        const response = await axios.get(`${this.api_url}/api/staff`);
-                        console.log('Staff API Response:', response.data);
+                        const response = await axios.get(`${this.api_url}/api/staff`, {
+                            headers:{
+                                Authorization: `Bearer ${token}`,
+                            }
+                        });
+
                         this.staffList = Array.isArray(response.data) ? response.data : (response.data.data || []);
                         this.totalStaffCount = this.staffList.length;
                         this.filteredStaffList = [...this.staffList];
@@ -440,7 +444,11 @@
                 },
                 async loadBranches() {
                     try {
-                        const response = await axios.get(`${this.api_url}/api/branches`);
+                        const response = await axios.get(`${this.api_url}/api/branches`,{
+                            headers:{
+                                Authorization: `Bearer ${token}`,
+                            }
+                        });
                         this.branches = Array.isArray(response.data) ? response.data : (response.data.data || []);
                     } catch (error) {
                         console.error('Error loading branches:', error);
