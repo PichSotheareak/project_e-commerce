@@ -253,4 +253,31 @@
 
 </div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    const api_url = 'http://127.0.0.1:8000/api'; // 🔥 Use your actual API URL
+
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+        e.preventDefault(); // stop normal form submission
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        axios.post(`${api_url}/login`, {
+            email: email,
+            password: password
+        }).then(response => {
+            const token = response.data.token;
+            localStorage.setItem('token', token);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            alert('Login successful!');
+            window.location.href = '/dashboard';  // or your desired page
+
+        }).catch(error => {
+            console.error(error);
+            alert('Login failed: ' + (error.response?.data?.message || 'Unknown error'));
+        });
+    });
+</script>
 </html>

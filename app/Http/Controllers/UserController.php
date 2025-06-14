@@ -180,17 +180,11 @@ class UserController extends Controller
         // Create Sanctum token
         $apiToken = $user->createToken('api-token')->plainTextToken;
 
-        $user->remember_token = $apiToken;
-        $user->save();
-
-        // Return JSON response with token
         return response()->json([
             'message' => 'Login successful',
             'token' => $apiToken,
             'user' => $user,
         ]);
     }
-
-
 
 }

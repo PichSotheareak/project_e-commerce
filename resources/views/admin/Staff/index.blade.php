@@ -73,7 +73,7 @@
                                         <tr v-for="(staff, index) in displayedStaff" :key="staff.id">
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ staff.id }}</td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">
-                                                <img :src="api_url+'/storage/'+ staff.image"
+                                                <img :src="api_url+'/storage/'+ staff.profile"
                                                      alt="Profile" class="profile-img rounded-circle">
                                             </td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.name)"></td>
@@ -274,7 +274,7 @@
                 <div class="offcanvas-body" v-if="viewStaff">
                     <div class="text-center mb-4">
                         <img :src="viewStaff.profile ? '/storage/' + viewStaff.profile : 'https://via.placeholder.com/100'"
-                             alt="Profile Photo" class="rounded-circle shadow" width="100" height="100">
+                             alt="Profile Photo" class="rounded-circle shadow" width="100" height="100" style="object-fit: cover">
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -317,11 +317,15 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Ensure CSRF token is set
         if (document.querySelector('meta[name="csrf-token"]')) {
             axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         }
+
+        // Retrieve token from localStorage
+        const token = localStorage.getItem('token');
 
         const { createApp } = Vue;
 
@@ -347,7 +351,8 @@
                     currentPage: 1,
                     pageSize: 5,
                     totalStaffCount: 0,
-                    formErrors: {}
+                    formErrors: {},
+                    removeProfile: false // New flag to track photo removal
                 };
             },
             async mounted() {
@@ -358,10 +363,6 @@
                 } catch (error) {
                     console.error('Error during initialization:', error);
                     this.errorMessage = 'Failed to initialize application. Details: ' + (error.message || 'Unknown error');
-                    if (error.response) {
-                        console.error('Response Status:', error.response.status);
-                        console.error('Response Data:', error.response.data);
-                    }
                 }
             },
             computed: {
@@ -422,17 +423,11 @@
                         this.errorMessage = null;
                         console.log('Fetching staff data...');
                         const response = await axios.get(`${this.api_url}/api/staff`, {
-                            headers:{
-                                Authorization: `Bearer ${token}`,
-                            }
+                            headers: { Authorization: `Bearer ${token}` }
                         });
-
                         this.staffList = Array.isArray(response.data) ? response.data : (response.data.data || []);
                         this.totalStaffCount = this.staffList.length;
                         this.filteredStaffList = [...this.staffList];
-                        if (this.staffList.length === 0) {
-                            console.warn('No staff data received from API');
-                        }
                     } catch (error) {
                         console.error('Error loading staff:', error.response ? error.response.data : error.message);
                         this.errorMessage = this.getErrorMessage(error, 'Failed to load staff data');
@@ -444,12 +439,11 @@
                 },
                 async loadBranches() {
                     try {
-                        const response = await axios.get(`${this.api_url}/api/branches`,{
-                            headers:{
-                                Authorization: `Bearer ${token}`,
-                            }
+                        const response = await axios.get(`${this.api_url}/api/branches`, {
+                            headers: { Authorization: `Bearer ${token}` }
                         });
                         this.branches = Array.isArray(response.data) ? response.data : (response.data.data || []);
+                        console.log('Branches:', this.branches);
                     } catch (error) {
                         console.error('Error loading branches:', error);
                         this.branches = [];
@@ -496,6 +490,7 @@
                     this.currentStaff = { name: '', gender: '', email: '', phone: '', current_address: '', position: '', salary: '', branches_id: '' };
                     this.selectedFile = null;
                     this.profileImageSrc = null;
+                    this.removeProfile = false;
                     this.formErrors = {};
                     this.showOffcanvas('staffOffcanvas');
                 },
@@ -504,7 +499,9 @@
                     this.currentStaff = { ...staff, branches_id: staff.branches_id || '' };
                     this.selectedFile = null;
                     this.profileImageSrc = staff.profile ? `/storage/${staff.profile}` : null;
+                    this.removeProfile = false;
                     this.formErrors = {};
+                    console.log('Editing Staff:', this.currentStaff);
                     this.showOffcanvas('staffOffcanvas');
                 },
                 viewStaffDetails(staff) {
@@ -515,16 +512,22 @@
                     const file = event.target.files[0];
                     if (file) {
                         const maxSize = 2 * 1024 * 1024;
+                        console.log('Selected File:', {
+                            name: file.name,
+                            size: file.size,
+                            type: file.type
+                        });
                         if (file.size > maxSize) {
                             this.errorMessage = 'File size must be less than 2MB';
                             return;
                         }
-                        if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-                            this.errorMessage = 'Please select a valid image file (JPG, JPEG, or PNG)';
+                        if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'].includes(file.type)) {
+                            this.errorMessage = 'Please select a valid image file (JPG, JPEG, PNG, GIF, or SVG)';
                             return;
                         }
                         this.selectedFile = file;
                         this.profileImageSrc = URL.createObjectURL(file);
+                        this.removeProfile = false; // Reset remove flag when new file is uploaded
                     }
                 },
                 handleDragOver(e) {
@@ -544,6 +547,7 @@
                 removePhoto() {
                     this.profileImageSrc = null;
                     this.selectedFile = null;
+                    this.removeProfile = true; // Set flag to indicate removal
                     if (this.$refs.fileInput) this.$refs.fileInput.value = '';
                 },
                 triggerFileInput() {
@@ -559,29 +563,73 @@
                     if (!this.currentStaff.position || this.currentStaff.position.trim().length === 0) this.formErrors.position = 'Position is required';
                     if (!this.currentStaff.salary || this.currentStaff.salary <= 0) this.formErrors.salary = 'Valid salary is required';
                     if (!this.currentStaff.branches_id) this.formErrors.branches_id = 'Branch is required';
+                    console.log('Validation Errors:', this.formErrors);
                     return Object.keys(this.formErrors).length === 0;
                 },
                 async saveStaff() {
-                    if (!this.validateForm()) return;
+                    if (!this.validateForm()) {
+                        console.log('Validation failed:', this.formErrors);
+                        return;
+                    }
                     try {
                         this.saving = true;
                         const formData = new FormData();
-                        Object.keys(this.currentStaff).forEach(key => formData.append(key, this.currentStaff[key]));
-                        if (this.selectedFile) formData.append('profile', this.selectedFile);
+                        // Exclude profile and branches to avoid sending invalid data
+                        Object.keys(this.currentStaff).forEach(key => {
+                            if (key !== 'profile' && key !== 'branches') {
+                                formData.append(key, this.currentStaff[key]);
+                            }
+                        });
+                        if (this.selectedFile) {
+                            formData.append('profile', this.selectedFile);
+                        }
+                        if (this.removeProfile) {
+                            formData.append('remove_profile', '1');
+                        }
+                        console.log('FormData:', [...formData.entries()]);
                         let response;
                         if (this.isEditing) {
                             formData.append('_method', 'PUT');
-                            response = await axios.post(`${this.api_url}/api/staff/${this.currentStaff.id}`, formData);
+                            console.log('Update Request URL:', `${this.api_url}/api/staff/${this.currentStaff.id}`);
+                            response = await axios.post(`${this.api_url}/api/staff/${this.currentStaff.id}`, formData, {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    'Content-Type': 'multipart/form-data'
+                                }
+                            });
                         } else {
-                            response = await axios.post(`${this.api_url}/api/staff`, formData);
+                            console.log('Add Request URL:', `${this.api_url}/api/staff`);
+                            response = await axios.post(`${this.api_url}/api/staff`, formData, {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    'Content-Type': 'multipart/form-data'
+                                }
+                            });
                         }
+                        console.log('Response:', response.data);
                         this.hideOffcanvas('staffOffcanvas');
-                        alert(this.isEditing ? 'Staff updated successfully!' : 'Staff added successfully!');
+                        Swal.fire({
+                            icon: 'success',
+                            title: this.isEditing ? 'Staff updated successfully!' : 'Staff added successfully!',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
                         this.resetForm();
                         await this.loadStaff();
                     } catch (error) {
-                        console.error('Save staff error:', error);
-                        this.errorMessage = 'Failed to save staff';
+                        console.error('Save staff error:', {
+                            message: error.message,
+                            response: error.response ? error.response.data : null,
+                            status: error.response ? error.response.status : null
+                        });
+                        const errors = error.response?.data?.errors;
+                        if (errors) {
+                            this.formErrors = errors;
+                            this.errorMessage = 'Please fix the errors in the form';
+                        } else {
+                            this.errorMessage = error.response?.data?.message || 'Failed to save staff';
+                        }
                     } finally {
                         this.saving = false;
                     }
@@ -590,20 +638,46 @@
                     this.currentStaff = { name: '', gender: '', email: '', phone: '', current_address: '', position: '', salary: '', branches_id: '' };
                     this.selectedFile = null;
                     this.profileImageSrc = null;
+                    this.removeProfile = false;
                     this.isEditing = false;
                     this.formErrors = {};
                     if (this.$refs.fileInput) this.$refs.fileInput.value = '';
                 },
                 async deleteStaff(staffId) {
                     if (!staffId) return;
-                    if (confirm('Are you sure you want to delete this staff member?')) {
+
+                    const result = await Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't be able to revert this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!'
+                    });
+
+                    if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/staff/${staffId}`);
+                            await axios.delete(`${this.api_url}/api/staff/${staffId}`, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
                             await this.loadStaff();
-                            alert('Staff member deleted successfully!');
+
+                            await Swal.fire(
+                                'Deleted!',
+                                'Staff member has been deleted.',
+                                'success'
+                            );
+
                         } catch (error) {
                             console.error('Error deleting staff:', error);
                             this.errorMessage = 'Failed to delete staff member';
+
+                            await Swal.fire(
+                                'Error!',
+                                'Failed to delete staff member.',
+                                'error'
+                            );
                         }
                     }
                 },

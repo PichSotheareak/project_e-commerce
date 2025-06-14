@@ -26,7 +26,7 @@ class StaffController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:50',
-            'gender' => 'required|string|max:6',
+            'gender' => 'required|in:Male,Female',
             'email' => 'required|email|unique:staff,email',
             'phone' => 'required|string|unique:staff,phone',
             'profile' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -36,9 +36,10 @@ class StaffController extends Controller
             'branches_id' => 'required|exists:branches,id',
         ]);
 
-        $profile = null;
         if ($request->hasFile('profile')) {
             $profile = $request->file('profile')->store('staff', 'public');
+        }else{
+            $profile = null;
         }
 
         $staff = Staff::create([
@@ -79,12 +80,12 @@ class StaffController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $staff = Staff::find($id);
+        $staff = Staff::findOrFail($id);
         $request->validate([
             'name' => 'required|string|max:255',
             'gender' => 'required|string|max:6',
             'email' => 'required|email|unique:staff,email,' . $id,
-            'phone' => 'required|string|unique:staff,phone',
+            'phone' => 'required|string|unique:staff,phone,' . $id,
             'profile' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'current_address' => 'required|string|max:100',
             'position' => 'required|string|max:100',
@@ -94,10 +95,12 @@ class StaffController extends Controller
 
         $profilePath = $staff->profile;
 
-        if ($request->hasFile('profile')) {
+        if ($request->input('remove_profile') === '1') {
             if ($staff->profile) {
                 Storage::disk('public')->delete($staff->profile);
             }
+            $profilePath = null;
+        } elseif ($request->hasFile('profile')) {
             $profilePath = $request->file('profile')->store('staff', 'public');
         }
 

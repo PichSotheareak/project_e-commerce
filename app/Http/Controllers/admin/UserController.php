@@ -17,14 +17,12 @@ class UserController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:8',
-            'remember' => 'nullable|boolean',  // Add remember field (checkbox)
+            'password' => 'required|string|min:8',// Add remember field (checkbox)
         ]);
 
-        $credentials = $request->only('email', 'password');
-        $remember = $request->filled('remember');  // Check if remember is checked
+        $credentials = $request->only('email', 'password');;  // Check if remember is checked
 
-        if (!Auth::attempt($credentials, $remember)) {
+        if (!Auth::attempt($credentials)) {
             return back()->withErrors(['email' => 'Invalid credentials'])->withInput();
         }
 
