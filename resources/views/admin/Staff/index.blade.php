@@ -324,8 +324,9 @@
             axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         }
 
-        // Retrieve token from localStorage
-        const token = localStorage.getItem('token');
+        // Setup Authorization token globally for Axios
+        const token = localStorage.getItem('token') ?? '';
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
         const { createApp } = Vue;
 
@@ -333,7 +334,7 @@
             data() {
                 return {
                     staffList: [],
-                    api_url: 'http://127.0.0.1:8000',
+                    api_url: 'https://su8.beynak.us',
                     filteredStaffList: [],
                     branches: [],
                     currentStaff: null,
@@ -422,9 +423,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching staff data...');
-                        const response = await axios.get(`${this.api_url}/api/staff`, {
-                            headers: { Authorization: `Bearer ${token}` }
-                        });
+                        const response = await axios.get(`${this.api_url}/api/staff`);
                         this.staffList = Array.isArray(response.data) ? response.data : (response.data.data || []);
                         this.totalStaffCount = this.staffList.length;
                         this.filteredStaffList = [...this.staffList];

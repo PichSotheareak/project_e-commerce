@@ -7,13 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 
-class DashboardController extends Controller
+class StaffController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index() {
-        return view('admin.Dashboard.index');
+        return view('admin.Staff.index');
     }
 
 
