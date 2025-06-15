@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\admin\DashboardController;
 use App\Http\Controllers\admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,9 +19,8 @@ Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 */
 Route::middleware(['auth'])->group(function () {
     // Dashboard
-    Route::get('/', function () {
-        return view('admin.dashboard.index');
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
 
     // Management Routes
     Route::view('/branches', 'admin.branches')->name('branches');
