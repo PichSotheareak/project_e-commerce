@@ -11,10 +11,14 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $query = Product::with(['categories', 'brands', 'product_details']);
+        if ($request->has('with_deleted') && $request->with_deleted) {
+            $query->withTrashed();
+        }
         return response()->json([
-            'data' => Product::with(['categories', 'brands', 'product_details'])->get()
+            'data' => $query->get()
         ]);
     }
 
@@ -36,28 +40,17 @@ class ProductController extends Controller
 
         ]);
 
-        $imageProduct = null;
         if ($request->hasFile('image')) {
-            $imageProduct = $request->file('image')->store('product', 'public');
+            $validated['image'] = $request->file('image')->store('product', 'public');
         }
 
-        $product = Product::create([
-            'name' => $request -> name,
-            'description' => $request -> description,
-            'image' => $imageProduct,
-            'cost' => $request -> cost,
-            'price' => $request -> price,
-            'inStock' => $request -> inStock,
-            'categories_id' => $request -> categories_id,
-            'brands_id' => $request -> brands_id,
-            'product_details_id' => $request -> product_details_id,
-            'create_at' => now(),
+        $product = Product::create($validated);
+        $product->load(['categories', 'brands', 'product_details']);
 
-        ]);
         return response()->json([
             'data' => $product,
             'message' => 'Product created successfully'
-        ]);
+        ], 201);
     }
 
     /**
@@ -65,14 +58,13 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        $product = Product::find($id);
+        $product = Product::with(['categories', 'brands', 'product_details'])->find($id);
 
-        if(!$product) {
+        if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        $product->load(['categories', 'brands', 'product_details']);
-        return response()->json([$product]);
+        return response()->json(['data' => $product]);
     }
     /**
      * Update the specified resource in storage.
@@ -80,6 +72,9 @@ class ProductController extends Controller
     public function update(Request $request, string $id)
     {
         $product = Product::find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
         $request->validate([
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:200',
@@ -97,22 +92,19 @@ class ProductController extends Controller
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
             }
-            $imageProduct = $request->file('image')->store('product', 'public');
-            $product->image = $imageProduct;
+            $validated['image'] = $request->file('image')->store('product', 'public');
+        } elseif ($request->remove_image) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validated['image'] = null;
+        } else {
+            $validated['image'] = $product->image; // Preserve existing image
         }
 
-        $product -> update([
-            'name' => $request -> name,
-            'description' => $request -> description,
-            'image' => $imageProduct,
-            'cost' => $request -> cost,
-            'price' => $request -> price,
-            'inStock' => $request -> inStock,
-            'categories_id' => $request -> categories_id,
-            'brands_id' => $request -> brands_id,
-            'product_details_id' => $request -> product_details_id,
-            'update_at' => now(),
-        ]);
+        $product->update($validated);
+        $product->load(['categories', 'brands', 'product_details']);
+
         return response()->json([
             'data' => $product,
             'message' => 'Product updated successfully'
@@ -125,14 +117,44 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $product = Product::find($id);
-
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
 
-        $product -> delete();
+        $product->delete();
         return response()->json([
-            'message' => 'Product deleted successfully'
+            'message' => 'Product soft deleted successfully'
+        ]);
+    }
+    public function restore(string $id)
+    {
+        $product = Product::withTrashed()->find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        $product->restore();
+        $product->load(['categories', 'brands', 'product_details']);
+
+        return response()->json([
+            'data' => $product,
+            'message' => 'Product restored successfully'
+        ]);
+    }
+    public function forceDelete(string $id)
+    {
+        $product = Product::withTrashed()->find($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        $product->forceDelete();
+        return response()->json([
+            'message' => 'Product permanently deleted successfully'
         ]);
     }
 }

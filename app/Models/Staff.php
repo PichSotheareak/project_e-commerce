@@ -25,6 +25,6 @@ class Staff extends Model
         'deleted_at'];
 
     public function branches(){
-        return $this->belongsTo(Branches::class);
+        return $this->belongsTo(Branches::class, 'branches_id' , 'id');
     }
 }

@@ -12,6 +12,7 @@ class Customer extends Model
     use SoftDeletes;
 
     protected $table = 'customers';
+    protected $hidden = ['password'];
     protected $fillable = [
         'name',
         'gender',

@@ -11,12 +11,13 @@ class BranchesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json([
-            'data' => Branches::all(),
-            'total' => Branches::count(),
-        ]);
+        $query = Branches::query();
+        if ($request->has('with_deleted') && $request->with_deleted) {
+            $query->withTrashed();
+        }
+        return response()->json(['data' => $query->get()]);
     }
 
     /**
@@ -24,7 +25,7 @@ class BranchesController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             'phone' => 'required|string|max:255|unique:branches,phone',
@@ -32,23 +33,15 @@ class BranchesController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $logoPath = null;
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('branches', 'public');
+            $validated['logo'] = $request->file('logo')->store('branches', 'public');
         }
 
-        $branches = Branches::create([
-            'name' => $request -> name,
-            'address' => $request -> address,
-            'phone' => $request -> phone,
-            'email' => $request -> email,
-            'logo' =>  $logoPath,
-            'created_at' => now(),
-        ]);
+        $branch = Branches::create($validated);
         return response()->json([
-            'data' => $branches,
-            'message' => 'Branch created successfully.',
-        ]);
+            'data' => $branch,
+            'message' => 'Branch created successfully'
+        ], 201);
     }
 
     /**
@@ -56,9 +49,11 @@ class BranchesController extends Controller
      */
     public function show(string $id)
     {
-        return response()->json([
-            'data' => Branches::find($id),
-        ]);
+        $branch = Branches::find($id);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+        return response()->json(['data' => $branch]);
     }
 
     /**
@@ -66,8 +61,11 @@ class BranchesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $branches = Branches::find($id);
-        $request->validate([
+        $branch = Branches::find($id);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+        $validated = $request->validate([
             'name' => 'required|string|max:30',
             'address' => 'required|string|max:255',
             'phone' => 'required|string|max:15|unique:branches,phone,' .$id,
@@ -76,25 +74,18 @@ class BranchesController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            if ($branches->logo) {
-                Storage::disk('public')->delete($branches->logo);
+            if ($branch->logo) {
+                Storage::disk('public')->delete($branch->logo);
             }
-
-            $logoPath = $request->file('logo')->store('branches', 'public');
-            $branches->logo = $logoPath;
+            $validated['logo'] = $request->file('logo')->store('branches', 'public');
+        } else {
+            $validated['logo'] = $branch->logo; // Preserve existing logo
         }
 
-        $branches->update([
-            'name' => $request -> name,
-            'address' => $request -> address,
-            'phone' => $request -> phone,
-            'email' => $request -> email,
-            'logo' =>  $logoPath,
-            'updated_at' => now(),
-        ]);
+        $branch->update($validated);
         return response()->json([
-            'data' => $branches,
-            'message' => 'Branch updated successfully.',
+            'data' => $branch,
+            'message' => 'Branch updated successfully'
         ]);
     }
 
@@ -103,10 +94,40 @@ class BranchesController extends Controller
      */
     public function destroy(string $id)
     {
-        $branches = Branches::find($id);
-        $branches->delete();
+        $branch = Branches::find($id);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+
+        $branch->delete();
+        return response()->json(['message' => 'Branch soft deleted successfully']);
+    }
+    public function restore(string $id)
+    {
+        $branch = Branches::withTrashed()->find($id);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+
+        $branch->restore();
         return response()->json([
-            'message' => 'Branch deleted successfully',
+            'data' => $branch,
+            'message' => 'Branch restored successfully'
         ]);
+    }
+
+    public function forceDelete(string $id)
+    {
+        $branch = Branches::withTrashed()->find($id);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+
+        if ($branch->logo) {
+            Storage::disk('public')->delete($branch->logo);
+        }
+
+        $branch->forceDelete();
+        return response()->json(['message' => 'Branch permanently deleted successfully']);
     }
 }

@@ -52,7 +52,6 @@ class StaffController extends Controller
             'position' => $request -> position,
             'salary' => $request -> salary,
             'branches_id' => $request -> branches_id,
-            'created_at' => now(),
         ]);
         return response()->json([
             'data' => $staff,
@@ -72,7 +71,7 @@ class StaffController extends Controller
         }
 
         $staff->load('branches');
-        return response()->json([$staff]);
+        return response()->json($staff);
     }
 
     /**
@@ -114,7 +113,6 @@ class StaffController extends Controller
             'position' => $request -> position,
             'salary' => $request -> salary,
             'branches_id' => $request -> branches_id,
-            'updated_at' => now(),
         ]);
         return response()->json([
             'data' => $staff,
@@ -132,7 +130,9 @@ class StaffController extends Controller
         if (!$staff) {
             return response()->json(['message' => 'staff not found'], 404);
         }
-
+        if ($staff->profile) {
+            Storage::disk('public')->delete($staff->profile);
+        }
         $staff->delete();
 
         return response()->json([

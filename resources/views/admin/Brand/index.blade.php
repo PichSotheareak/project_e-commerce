@@ -2,13 +2,13 @@
 @section('content')
     <div id="app">
         <div class="page-inner">
-            <div  class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4 justify-content-between">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4 justify-content-between">
                 <div>
-                    <h3 class="fw-bold mb-3">Staff List</h3>
+                    <h3 class="fw-bold mb-3">Brands List</h3>
                 </div>
                 <div>
-                    <button class="btn btn-secondary rounded" type="button" @click="openAddModal" title="Add Staff">
-                        <i class="fa-solid fa-user-plus fa-lg"></i>
+                    <button class="btn btn-secondary rounded" type="button" @click="openAddModal" title="Add Brand">
+                        <i class="fa-solid fa-plus fa-lg"></i>
                     </button>
                 </div>
             </div>
@@ -18,26 +18,18 @@
                     <div class="card card-round">
                         <div class="card-header">
                             <div class="card-head-row">
-                                <div class="card-title">Staff Members</div>
+                                <div class="card-title">All Brands</div>
                                 <div class="card-tools">
                                     <div class="row justify-content-end align-items-center g-2">
                                         <div class="col-auto">
-                                            <select class="form-select form-select-sm" v-model="selectedPositionFilter" @change="performSearch">
-                                                <option value="">All Positions</option>
-                                                <option v-for="position in availablePositions" :key="position" :value="position">
-                                                    @{{ position }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="col-auto">
-                                            <input type="text" class="form-control" placeholder="Search staff..."
+                                            <input type="text" class="form-control" placeholder="Search Brands..."
                                                    v-model="searchQuery" @input="performSearch">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="search-stats mt-2" v-if="searchActive">
-                                Showing @{{ displayedStaff.length }} of @{{ totalStaffCount }} staff members
+                                Showing @{{ displayedBrands.length }} of @{{ totalBrandCount }} Brands
                                 <span v-if="searchQuery">for "@{{ searchQuery }}"</span>
                             </div>
                         </div>
@@ -46,7 +38,7 @@
                                 <div class="spinner-border" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
-                                <p>Loading staff data...</p>
+                                <p>Loading brand data...</p>
                             </div>
 
                             <div v-if="errorMessage" class="alert alert-danger" role="alert">
@@ -59,39 +51,47 @@
                                         <thead class="table-light">
                                         <tr>
                                             <th>ID</th>
-                                            <th>Profile</th>
+                                            <th>Image</th>
                                             <th>Name</th>
-                                            <th>Gender</th>
-                                            <th>Email</th>
-                                            <th>Phone</th>
-                                            <th>Position</th>
-                                            <th>Branch</th>
+                                            <th>Created At</th>
+                                            <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <tr v-for="(staff, index) in displayedStaff" :key="staff.id">
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ index + 1 }}</td>
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;">
-                                                <img :src="api_url+'/storage/'+ staff.profile"
-                                                     alt="Profile" class="profile-img rounded-circle">
+                                        <tr v-for="(brand, index) in displayedBrands" :key="brand.id">
+                                            <td @click="viewBrandDetails(brand)" style="cursor: pointer;">@{{ index + 1 }}</td>
+                                            <td @click="viewBrandDetails(brand)" style="cursor: pointer;">
+                                                <img :src="brand.image ? api_url+'/storage/'+brand.image : 'https://via.placeholder.com/50'"
+                                                     alt="Brand Image" class="brand-img rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                                             </td>
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.name)"></td>
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ staff.gender }}</td>
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.email)"></td>
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.phone)"></td>
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.position)"></td>
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.branches ? staff.branches.name : 'N/A')"></td>
+                                            <td @click="viewBrandDetails(brand)" style="cursor: pointer;" v-html="highlightText(brand.name)"></td>
+                                            <td @click="viewBrandDetails(brand)" style="cursor: pointer;">@{{ formatDate(brand.created_at) }}</td>
+                                            <td @click="viewBrandDetails(brand)" style="cursor: pointer;">
+                                                <span :class="{'text-danger': brand.deleted_at, 'text-success': !brand.deleted_at}">
+                                                    @{{ brand.deleted_at ? 'Deleted' : 'Active' }}
+                                                </span>
+                                            </td>
                                             <td>
                                                 <div class="d-flex">
-                                                    <div class="me-3">
-                                                        <a class="action-btn btn-edit" href="#" @click.prevent="openEditModal(staff)">
+                                                    <div class="me-3" v-if="!brand.deleted_at">
+                                                        <a class="action-btn btn-edit" href="#" @click.prevent="openEditModal(brand)">
                                                             <i class="fa-solid fa-pen me-2"></i>Edit
                                                         </a>
                                                     </div>
-                                                    <div>
-                                                        <a class="action-btn btn-delete" href="#" @click.prevent="deleteStaff(staff.id)">
+                                                    <div v-if="!brand.deleted_at">
+                                                        <a class="action-btn btn-delete" href="#" @click.prevent="deleteBrand(brand.id)">
                                                             <i class="fa-solid fa-trash me-2"></i>Delete
+                                                        </a>
+                                                    </div>
+                                                    <div v-if="brand.deleted_at">
+                                                        <a class="action-btn btn-restore" href="#" @click.prevent="restoreBrand(brand.id)">
+                                                            <i class="fa-solid fa-trash-restore me-2"></i>Restore
+                                                        </a>
+                                                    </div>
+                                                    <div v-if="brand.deleted_at" class="ms-3">
+                                                        <a class="action-btn btn-danger" href="#" @click.prevent="forceDeleteBrand(brand.id)">
+                                                            <i class="fa-solid fa-trash me-2"></i>Permanent Delete
                                                         </a>
                                                     </div>
                                                 </div>
@@ -100,9 +100,9 @@
                                         </tbody>
                                     </table>
 
-                                    <div v-if="displayedStaff.length === 0 && !loading" class="text-center py-4">
+                                    <div v-if="displayedBrands.length === 0 && !loading" class="text-center py-4">
                                         <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                                        <h5 class="text-muted">No staff found</h5>
+                                        <h5 class="text-muted">No brands found</h5>
                                         <p class="text-muted">Try adjusting your search criteria</p>
                                     </div>
                                 </div>
@@ -122,11 +122,11 @@
                                         </div>
                                         <div class="pagination-info">
                                             Showing @{{ startRecord }} to @{{ endRecord }} of @{{ totalFilteredRecords }} entries
-                                            <span v-if="totalFilteredRecords !== totalStaffCount">
-                                                (filtered from @{{ totalStaffCount }} total entries)
+                                            <span v-if="totalFilteredRecords !== totalBrandCount">
+                                                (filtered from @{{ totalBrandCount }} total entries)
                                             </span>
                                         </div>
-                                        <nav aria-label="Staff pagination">
+                                        <nav aria-label="Brand pagination">
                                             <ul class="pagination pagination-sm mb-0">
                                                 <li class="page-item" :class="{ disabled: currentPage === 1 }">
                                                     <button class="page-link" @click="goToPage(1)" :disabled="currentPage === 1">
@@ -164,15 +164,15 @@
             </div>
 
             <!-- Add/Edit Offcanvas -->
-            <div class="offcanvas offcanvas-end" tabindex="-1" id="staffOffcanvas" aria-labelledby="staffOffcanvasLabel">
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="brandOffcanvas" aria-labelledby="brandOffcanvasLabel">
                 <div class="offcanvas-header">
-                    <h5 id="staffOffcanvasLabel">@{{ isEditing ? 'Edit' : 'Add' }} Staff</h5>
+                    <h5 id="brandOffcanvasLabel">@{{ isEditing ? 'Edit' : 'Add' }} Brand</h5>
                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
-                <div class="offcanvas-body" v-if="currentStaff">
-                    <form @submit.prevent="saveStaff" enctype="multipart/form-data">
+                <div class="offcanvas-body" v-if="currentBrand">
+                    <form @submit.prevent="saveBrand" enctype="multipart/form-data">
                         <div>
-                            <div v-if="!profileImageSrc" class="d-flex justify-content-lg-start align-content-start">
+                            <div v-if="!brandImageSrc" class="d-flex justify-content-lg-start align-content-start">
                                 <div class="w-100 mx-auto upload-area">
                                     <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:bg-gray-50 cursor-pointer transition-all duration-200"
                                          :class="{ 'bg-gray-100': isDragOver }"
@@ -189,63 +189,19 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-if="profileImageSrc" class="text-center">
-                                <h6 class="text-muted mb-4 d-flex fw-bold">Profile Photo *</h6>
-                                <div class="profile-photo-container">
-                                    <img :src="profileImageSrc" alt="Profile Photo" class="profile-photo">
-                                    <button type="button" class="remove-btn" @click="removePhoto" title="Remove photo">
+                            <div v-if="brandImageSrc" class="text-center">
+                                <h6 class="text-muted mb-4 d-flex fw-bold">Brand Image</h6>
+                                <div class="brand-image-container">
+                                    <img :src="brandImageSrc" alt="Brand Image" class="brand-image" style="width: 100px; height: 100px; object-fit: cover;">
+                                    <button type="button" class="remove-btn" @click="removePhoto" title="Remove image">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Name *</label>
-                                <input type="text" class="form-control" v-model="currentStaff.name" required maxlength="50">
+                                <input type="text" class="form-control" v-model="currentBrand.name" required maxlength="255">
                                 <span v-if="formErrors.name" class="text-danger small">@{{ formErrors.name }}</span>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Gender *</label>
-                                <select class="form-select" v-model="currentStaff.gender" required>
-                                    <option value="">Select Gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                </select>
-                                <span v-if="formErrors.gender" class="text-danger small">@{{ formErrors.gender }}</span>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Email *</label>
-                                <input type="email" class="form-control" v-model="currentStaff.email" required>
-                                <span v-if="formErrors.email" class="text-danger small">@{{ formErrors.email }}</span>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Phone *</label>
-                                <input type="text" class="form-control" v-model="currentStaff.phone" required>
-                                <span v-if="formErrors.phone" class="text-danger small">@{{ formErrors.phone }}</span>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Current Address *</label>
-                                <textarea class="form-control" v-model="currentStaff.current_address" required maxlength="100" rows="3"></textarea>
-                                <span v-if="formErrors.current_address" class="text-danger small">@{{ formErrors.current_address }}</span>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Position *</label>
-                                <input type="text" class="form-control" v-model="currentStaff.position" required maxlength="100">
-                                <span v-if="formErrors.position" class="text-danger small">@{{ formErrors.position }}</span>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Salary *</label>
-                                <input type="number" class="form-control" v-model="currentStaff.salary" required min="0" step="0.01">
-                                <span v-if="formErrors.salary" class="text-danger small">@{{ formErrors.salary }}</span>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Branch *</label>
-                                <select class="form-select" v-model="currentStaff.branches_id" required>
-                                    <option value="">Select Branch</option>
-                                    <option v-for="branch in branches" :key="branch.id" :value="branch.id">
-                                        @{{ branch.name }}
-                                    </option>
-                                </select>
-                                <span v-if="formErrors.branches_id" class="text-danger small">@{{ formErrors.branches_id }}</span>
                             </div>
                             <div class="d-flex justify-content-end">
                                 <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="offcanvas">Cancel</button>
@@ -259,55 +215,42 @@
                 </div>
             </div>
 
-
-            <!-- View Details Offcanvas -->
-            <div class="offcanvas offcanvas-end" tabindex="-1" id="viewOffcanvas" aria-labelledby="viewOffcanvasLabel">
+            <!-- View Brand Details Offcanvas -->
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="view-brand-offcanvas" aria-labelledby="viewBrandLabel">
                 <div class="offcanvas-header">
                     <div class="w-100 d-flex justify-content-between align-items-start">
-                        <div v-if="viewStaff">
-                            <h5 class="mb-0">@{{ viewStaff.name }}</h5>
-                            <small class="text-white badge bg-secondary">@{{ viewStaff.position }}</small>
+                        <div v-if="viewBrand">
+                            <h5 class="mb-0">@{{ viewBrand.name }}</h5>
+                            <small class="text-white badge bg-secondary" v-if="viewBrand.deleted_at">Deleted</small>
                         </div>
                     </div>
                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
-                <div class="offcanvas-body" v-if="viewStaff">
+                <div class="offcanvas-body" v-if="viewBrand">
                     <div class="text-center mb-4">
-                        <img :src="viewStaff.profile ? '/storage/' + viewStaff.profile : 'https://via.placeholder.com/100'"
-                             alt="Profile Photo" class="rounded-circle shadow" width="100" height="100" style="object-fit: cover">
+                        <img :src="viewBrand.image ? '/storage/' + viewBrand.image : 'https://via.placeholder.com/100'"
+                             alt="Brand Image" class="rounded-circle shadow" width="100" height="100" style="object-fit: cover;">
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <div class="text-muted small">Gender</div>
-                            <div class="fw-semibold">@{{ viewStaff.gender }}</div>
+                            <div class="text-muted small">ID</div>
+                            <div class="fw-semibold">@{{ viewBrand.id }}</div>
                         </div>
                         <div class="mb-3">
-                            <div class="text-muted small">Email</div>
-                            <div class="fw-semibold">@{{ viewStaff.email }}</div>
+                            <div class="text-muted small">Name</div>
+                            <div class="fw-semibold">@{{ viewBrand.name }}</div>
                         </div>
                         <div class="mb-3">
-                            <div class="text-muted small">Phone Number</div>
-                            <div class="fw-semibold">@{{ viewStaff.phone }}</div>
+                            <div class="text-muted small">Created At</div>
+                            <div class="fw-semibold">@{{ formatDate(viewBrand.created_at) }}</div>
                         </div>
                         <div class="mb-3">
-                            <div class="text-muted small">Current Address</div>
-                            <div class="fw-semibold">@{{ viewStaff.current_address }}</div>
+                            <div class="text-muted small">Updated At</div>
+                            <div class="fw-semibold">@{{ formatDate(viewBrand.updated_at) }}</div>
                         </div>
-                        <div class="mb-3">
-                            <div class="text-muted small">Position</div>
-                            <div class="fw-semibold">@{{ viewStaff.position }}</div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="text-muted small">Salary</div>
-                            <div class="fw-semibold">@{{ parseFloat(viewStaff.salary).toLocaleString() }}</div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="text-muted small">Branch</div>
-                            <div class="fw-semibold">@{{ viewStaff.branches ? viewStaff.branches.name : 'N/A' }}</div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="text-muted small">Created Date</div>
-                            <div class="fw-semibold">@{{ formatDate(viewStaff.created_at) }}</div>
+                        <div class="mb-3" v-if="viewBrand.deleted_at">
+                            <div class="text-muted small">Deleted At</div>
+                            <div class="fw-semibold">@{{ formatDate(viewBrand.deleted_at) }}</div>
                         </div>
                     </div>
                 </div>
@@ -319,70 +262,61 @@
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Setup CSRF
+        // Ensure CSRF token is set
         if (document.querySelector('meta[name="csrf-token"]')) {
             axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         }
 
-        // Setup Axios globally with Authorization Token
-        axios.interceptors.request.use(config => {
-            const token = localStorage.getItem('token') ?? '';
-            if (token) {
-                config.headers['Authorization'] = `Bearer ${token}`;
-            }
-            return config;
-        }, error => {
-            return Promise.reject(error);
-        });
+        // Setup Authorization token globally for Axios
+        const token = localStorage.getItem('token') ?? '';
+        console.log('Token:', token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
         const { createApp } = Vue;
 
         createApp({
             data() {
                 return {
-                    staffList: [],
-                    //api_url: 'https://su8.beynak.us',
-                    api_url:'http://127.0.0.1:8000',
-                    filteredStaffList: [],
-                    branches: [],
-                    currentStaff: null,
-                    viewStaff: null,
+                    brandList: [],
+                    api_url: 'http://127.0.0.1:8000',
+                    filteredBrandList: [],
+                    currentBrand: null,
+                    viewBrand: null,
                     isEditing: false,
                     loading: true,
                     saving: false,
                     errorMessage: null,
                     selectedFile: null,
-                    profileImageSrc: null,
+                    brandImageSrc: null,
                     isDragOver: false,
                     searchQuery: '',
-                    selectedPositionFilter: '',
                     searchDebounceTimer: null,
                     currentPage: 1,
                     pageSize: 5,
-                    totalStaffCount: 0,
+                    totalBrandCount: 0,
                     formErrors: {},
-                    removeProfile: false // New flag to track photo removal
+                    removeImage: false,
+                    showDeleted: false
                 };
             },
             async mounted() {
                 console.log('Mounting Vue app...');
                 try {
-                    await Promise.all([this.loadStaff(), this.loadBranches()]);
-                    console.log('Staff List:', this.staffList);
+                    await this.loadBrands();
+                    console.log('Brand List:', this.brandList);
+                    console.log('Filtered Brand List:', this.filteredBrandList);
+                    console.log('Displayed Brands:', this.displayedBrands);
                 } catch (error) {
                     console.error('Error during initialization:', error);
                     this.errorMessage = 'Failed to initialize application. Details: ' + (error.message || 'Unknown error');
                 }
             },
             computed: {
-                availablePositions() {
-                    return [...new Set(this.staffList.map(staff => staff.position))].filter(p => p && p.trim()).sort();
-                },
                 searchActive() {
-                    return this.searchQuery.trim() !== '' || this.selectedPositionFilter !== '';
+                    return this.searchQuery.trim() !== '';
                 },
                 totalFilteredRecords() {
-                    return this.filteredStaffList.length;
+                    return this.filteredBrandList.length;
                 },
                 totalPages() {
                     return Math.ceil(this.totalFilteredRecords / this.pageSize);
@@ -394,10 +328,12 @@
                     const end = this.currentPage * this.pageSize;
                     return Math.min(end, this.totalFilteredRecords);
                 },
-                displayedStaff() {
+                displayedBrands() {
                     const start = (this.currentPage - 1) * this.pageSize;
                     const end = start + this.pageSize;
-                    return this.filteredStaffList.slice(start, end);
+                    const brands = this.filteredBrandList.slice(start, end);
+                    console.log('Computing displayedBrands:', brands);
+                    return brands;
                 },
                 visiblePages() {
                     const pages = [];
@@ -415,43 +351,41 @@
                 }
             },
             watch: {
-                filteredStaffList() {
+                filteredBrandList() {
                     this.currentPage = 1;
+                    console.log('filteredBrandList changed:', this.filteredBrandList);
                 },
                 searchQuery() {
                     this.performSearch();
+                    console.log('Search Query:', this.searchQuery);
                 },
-                selectedPositionFilter() {
-                    this.performSearch();
+                showDeleted() {
+                    this.loadBrands();
+                    console.log('Show Deleted toggled:', this.showDeleted);
                 }
             },
             methods: {
-                async loadStaff() {
+                async loadBrands() {
                     try {
                         this.loading = true;
                         this.errorMessage = null;
-                        console.log('Fetching staff data...');
-                        const response = await axios.get(`${this.api_url}/api/staff`);
-                        this.staffList = Array.isArray(response.data) ? response.data : (response.data.data || []);
-                        this.totalStaffCount = this.staffList.length;
-                        this.filteredStaffList = [...this.staffList];
+                        console.log('Fetching brand data with showDeleted:', this.showDeleted);
+                        const response = await axios.get(`${this.api_url}/api/brand`, {
+                            params: { with_deleted: this.showDeleted ? 1 : 0 }
+                        });
+                        console.log('API Response:', response.data);
+                        this.brandList = Array.isArray(response.data) ? response.data : (response.data.data || []);
+                        this.totalBrandCount = this.brandList.length;
+                        this.filteredBrandList = [...this.brandList];
+                        this.executeSearch();
+                        console.log('After loadBrands - brandList:', this.brandList, 'totalBrandCount:', this.totalBrandCount);
                     } catch (error) {
-                        console.error('Error loading staff:', error.response ? error.response.data : error.message);
-                        this.errorMessage = this.getErrorMessage(error, 'Failed to load staff data');
-                        this.staffList = [];
-                        this.filteredStaffList = [];
+                        console.error('Error loading brands:', error.response ? error.response.data : error.message);
+                        this.errorMessage = this.getErrorMessage(error, 'Failed to load brand data');
+                        this.brandList = [];
+                        this.filteredBrandList = [];
                     } finally {
                         this.loading = false;
-                    }
-                },
-                async loadBranches() {
-                    try {
-                        const response = await axios.get(`${this.api_url}/api/branches`);
-                        this.branches = Array.isArray(response.data) ? response.data : (response.data.data || []);
-                        console.log('Branches:', this.branches);
-                    } catch (error) {
-                        console.error('Error loading branches:', error);
-                        this.branches = [];
                     }
                 },
                 performSearch() {
@@ -459,22 +393,15 @@
                     this.searchDebounceTimer = setTimeout(this.executeSearch, 300);
                 },
                 executeSearch() {
-                    let filtered = [...this.staffList];
+                    let filtered = [...this.brandList];
                     if (this.searchQuery.trim()) {
                         const query = this.searchQuery.toLowerCase().trim();
-                        filtered = filtered.filter(staff =>
-                            (staff.name && staff.name.toLowerCase().includes(query)) ||
-                            (staff.email && staff.email.toLowerCase().includes(query)) ||
-                            (staff.position && staff.position.toLowerCase().includes(query)) ||
-                            (staff.phone && staff.phone.toString().includes(query)) ||
-                            (staff.branches && staff.branches.name && staff.branches.name.toLowerCase().includes(query))
+                        filtered = filtered.filter(brand =>
+                            (brand.name && brand.name.toLowerCase().includes(query))
                         );
                     }
-                    if (this.selectedPositionFilter) {
-                        filtered = filtered.filter(staff => staff.position?.toLowerCase() === this.selectedPositionFilter.toLowerCase());
-                    }
-
-                    this.filteredStaffList = filtered;
+                    this.filteredBrandList = filtered;
+                    console.log('After executeSearch - filteredBrandList:', this.filteredBrandList);
                 },
                 highlightText(text) {
                     if (!this.searchQuery.trim() || !text) return text;
@@ -490,29 +417,33 @@
                 },
                 changePageSize() {
                     this.currentPage = 1;
+                    console.log('Page Size changed:', this.pageSize);
+                },
+                toggleShowDeleted() {
+                    this.showDeleted = !this.showDeleted;
                 },
                 openAddModal() {
                     this.isEditing = false;
-                    this.currentStaff = { name: '', gender: '', email: '', phone: '', current_address: '', position: '', salary: '', branches_id: '' };
+                    this.currentBrand = { name: '' };
                     this.selectedFile = null;
-                    this.profileImageSrc = null;
-                    this.removeProfile = false;
+                    this.brandImageSrc = null;
+                    this.removeImage = false;
                     this.formErrors = {};
-                    this.showOffcanvas('staffOffcanvas');
+                    this.showOffcanvas('brandOffcanvas');
                 },
-                openEditModal(staff) {
+                openEditModal(brand) {
                     this.isEditing = true;
-                    this.currentStaff = { ...staff, branches_id: staff.branches_id || '' };
+                    this.currentBrand = { ...brand };
                     this.selectedFile = null;
-                    this.profileImageSrc = staff.profile ? `${this.api_url}/storage/${staff.profile}` : null;
-                    this.removeProfile = false;
+                    this.brandImageSrc = brand.image ? `${this.api_url}/storage/${brand.image}` : null;
+                    this.removeImage = false;
                     this.formErrors = {};
-                    console.log('Editing Staff:', this.currentStaff);
-                    this.showOffcanvas('staffOffcanvas');
+                    console.log('Editing Brand:', this.currentBrand);
+                    this.showOffcanvas('brandOffcanvas');
                 },
-                viewStaffDetails(staff) {
-                    this.viewStaff = { ...staff };
-                    this.showOffcanvas('viewOffcanvas');
+                viewBrandDetails(brand) {
+                    this.viewBrand = { ...brand };
+                    this.showOffcanvas('view-brand-offcanvas');
                 },
                 handleFileUpload(event) {
                     const file = event.target.files[0];
@@ -527,13 +458,13 @@
                             this.errorMessage = 'File size must be less than 2MB';
                             return;
                         }
-                        if (!['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'].includes(file.type)) {
-                            this.errorMessage = 'Please select a valid image file (JPG, JPEG, PNG, GIF, or SVG)';
+                        if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+                            this.errorMessage = 'Please select a valid image file (JPG, JPEG, PNG)';
                             return;
                         }
                         this.selectedFile = file;
-                        this.profileImageSrc = URL.createObjectURL(file);
-                        this.removeProfile = false; // Reset remove flag when new file is uploaded
+                        this.brandImageSrc = URL.createObjectURL(file);
+                        this.removeImage = false;
                     }
                 },
                 handleDragOver(e) {
@@ -551,9 +482,9 @@
                     if (file) this.handleFileUpload({ target: { files: [file] } });
                 },
                 removePhoto() {
-                    this.profileImageSrc = null;
+                    this.brandImageSrc = null;
                     this.selectedFile = null;
-                    this.removeProfile = true; // Set flag to indicate removal
+                    this.removeImage = true;
                     if (this.$refs.fileInput) this.$refs.fileInput.value = '';
                 },
                 triggerFileInput() {
@@ -561,18 +492,13 @@
                 },
                 validateForm() {
                     this.formErrors = {};
-                    if (!this.currentStaff.name || this.currentStaff.name.trim().length === 0) this.formErrors.name = 'Name is required';
-                    if (!this.currentStaff.gender) this.formErrors.gender = 'Gender is required';
-                    if (!this.currentStaff.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.currentStaff.email)) this.formErrors.email = 'Valid email is required';
-                    if (!this.currentStaff.phone) this.formErrors.phone = 'Phone is required';
-                    if (!this.currentStaff.current_address || this.currentStaff.current_address.trim().length === 0) this.formErrors.current_address = 'Address is required';
-                    if (!this.currentStaff.position || this.currentStaff.position.trim().length === 0) this.formErrors.position = 'Position is required';
-                    if (!this.currentStaff.salary || this.currentStaff.salary <= 0) this.formErrors.salary = 'Valid salary is required';
-                    if (!this.currentStaff.branches_id) this.formErrors.branches_id = 'Branch is required';
+                    if (!this.currentBrand.name || this.currentBrand.name.trim().length === 0) {
+                        this.formErrors.name = 'Name is required';
+                    }
                     console.log('Validation Errors:', this.formErrors);
                     return Object.keys(this.formErrors).length === 0;
                 },
-                async saveStaff() {
+                async saveBrand() {
                     if (!this.validateForm()) {
                         console.log('Validation failed:', this.formErrors);
                         return;
@@ -580,102 +506,168 @@
                     try {
                         this.saving = true;
                         const formData = new FormData();
-
-                        Object.keys(this.currentStaff).forEach(key => {
-                            if (key !== 'profile' && key !== 'branches') {
-                                formData.append(key, this.currentStaff[key]);
-                            }
-                        });
-
+                        formData.append('name', this.currentBrand.name || '');
                         if (this.selectedFile) {
-                            formData.append('profile', this.selectedFile);
+                            formData.append('image', this.selectedFile);
                         }
-                        if (this.removeProfile) {
-                            formData.append('remove_profile', '1');
+                        if (this.removeImage) {
+                            formData.append('remove_image', '1');
                         }
-
+                        console.log('FormData:', [...formData.entries()]);
                         let response;
                         if (this.isEditing) {
                             formData.append('_method', 'PUT');
-                            response = await axios.post(`${this.api_url}/api/staff/${this.currentStaff.id}`, formData, {
-                                headers: { 'Content-Type': 'multipart/form-data' }
+                            console.log('Update Request URL:', `${this.api_url}/api/brand/${this.currentBrand.id}`);
+                            response = await axios.post(`${this.api_url}/api/brand/${this.currentBrand.id}`, formData, {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    'Content-Type': 'multipart/form-data'
+                                }
                             });
                         } else {
-                            response = await axios.post(`${this.api_url}/api/staff`, formData, {
-                                headers: { 'Content-Type': 'multipart/form-data' }
+                            console.log('Add Request URL:', `${this.api_url}/api/brand`);
+                            response = await axios.post(`${this.api_url}/api/brand`, formData, {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    'Content-Type': 'multipart/form-data'
+                                }
                             });
                         }
-
-                        this.hideOffcanvas('staffOffcanvas');
+                        console.log('Response:', response.data);
+                        this.hideOffcanvas('brandOffcanvas');
                         Swal.fire({
                             icon: 'success',
-                            title: this.isEditing ? 'Staff updated successfully!' : 'Staff added successfully!',
+                            title: this.isEditing ? 'Brand updated successfully!' : 'Brand added successfully!',
                             showConfirmButton: false,
                             timer: 1500
                         });
-
                         this.resetForm();
-                        await this.loadStaff();
+                        await this.loadBrands();
                     } catch (error) {
-                        console.error('Save staff error:', error);
+                        console.error('Save brand error:', {
+                            message: error.message,
+                            response: error.response ? error.response.data : null,
+                            status: error.response ? error.response.status : null
+                        });
                         const errors = error.response?.data?.errors;
                         if (errors) {
                             this.formErrors = errors;
                             this.errorMessage = 'Please fix the errors in the form';
                         } else {
-                            this.errorMessage = error.response?.data?.message || 'Failed to save staff';
+                            this.errorMessage = error.response?.data?.message || 'Failed to save brand';
                         }
                     } finally {
                         this.saving = false;
                     }
-                }
-                ,
+                },
                 resetForm() {
-                    this.currentStaff = { name: '', gender: '', email: '', phone: '', current_address: '', position: '', salary: '', branches_id: '' };
+                    this.currentBrand = { name: '' };
                     this.selectedFile = null;
-                    this.profileImageSrc = null;
-                    this.removeProfile = false;
+                    this.brandImageSrc = null;
+                    this.removeImage = false;
                     this.isEditing = false;
                     this.formErrors = {};
                     if (this.$refs.fileInput) this.$refs.fileInput.value = '';
                 },
-                async deleteStaff(staffId) {
-                    if (!staffId) return;
-
+                async deleteBrand(brandId) {
+                    if (!brandId) return;
                     const result = await Swal.fire({
                         title: 'Are you sure?',
-                        text: "You won't be able to revert this!",
+                        text: "This will soft delete the brand. You can restore it later.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#3085d6',
                         cancelButtonColor: '#d33',
                         confirmButtonText: 'Yes, delete it!'
                     });
-
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/staff/${staffId}`);
-                            await this.loadStaff();
-
+                            await axios.delete(`${this.api_url}/api/brand/${brandId}`, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
+                            await this.loadBrands();
                             await Swal.fire(
                                 'Deleted!',
-                                'Staff member has been deleted.',
+                                'Brand has been soft deleted.',
                                 'success'
                             );
-
                         } catch (error) {
-                            console.error('Error deleting staff:', error);
-                            this.errorMessage = 'Failed to delete staff member';
-
+                            console.error('Error deleting brand:', error);
+                            this.errorMessage = 'Failed to delete brand';
                             await Swal.fire(
                                 'Error!',
-                                'Failed to delete staff member.',
+                                'Failed to delete brand.',
                                 'error'
                             );
                         }
                     }
-                }
-                ,
+                },
+                async restoreBrand(brandId) {
+                    if (!brandId) return;
+                    const result = await Swal.fire({
+                        title: 'Restore Brand?',
+                        text: "This will restore the brand to active status.",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, restore it!'
+                    });
+                    if (result.isConfirmed) {
+                        try {
+                            await axios.post(`${this.api_url}/api/brand/${brandId}/restore`, {}, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
+                            await this.loadBrands();
+                            await Swal.fire(
+                                'Restored!',
+                                'Brand has been restored.',
+                                'success'
+                            );
+                        } catch (error) {
+                            console.error('Error restoring brand:', error);
+                            this.errorMessage = 'Failed to restore brand';
+                            await Swal.fire(
+                                'Error!',
+                                'Failed to restore brand.',
+                                'error'
+                            );
+                        }
+                    }
+                },
+                async forceDeleteBrand(brandId) {
+                    if (!brandId) return;
+                    const result = await Swal.fire({
+                        title: 'Permanently Delete Brand?',
+                        text: "This action cannot be undone!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, permanently delete!'
+                    });
+                    if (result.isConfirmed) {
+                        try {
+                            await axios.delete(`${this.api_url}/api/brand/${brandId}/force`, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
+                            await this.loadBrands();
+                            await Swal.fire(
+                                'Permanently Deleted!',
+                                'Brand has been permanently deleted.',
+                                'success'
+                            );
+                        } catch (error) {
+                            console.error('Error force deleting brand:', error);
+                            this.errorMessage = 'Failed to permanently delete brand';
+                            await Swal.fire(
+                                'Error!',
+                                'Failed to permanently delete brand.',
+                                'error'
+                            );
+                        }
+                    }
+                },
                 formatDate(dateString) {
                     return dateString ? new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
                 },

@@ -23,7 +23,7 @@ class Branches extends Model
     ];
 
     public function staff(){
-        return $this->hasMany(Staff::class);
+        return $this->hasMany(Staff::class, 'branch_id', 'id');
     }
 
     public function orders(){
