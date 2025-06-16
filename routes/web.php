@@ -40,5 +40,5 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/customers', 'admin.customers')->name('customers');
     Route::view('/users', 'admin.users')->name('users');
     Route::view('/profile', 'admin.profile')->name('profile');
-    Route::view('/contact-us', 'admin.contact')->name('contact.us');
+    Route::view('/contactUs', 'admin.contactUs.index')->name('contactUs');
 });

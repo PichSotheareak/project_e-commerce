@@ -306,7 +306,7 @@ $profileImage = ($user->profile && $user->profile->image)
                     </li>
 
                     <li class="nav-item">
-                        <a href="/contact-us" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('contactUs') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-envelope me-2"></i><span>Contact Us</span>
                         </a>
                     </li>
