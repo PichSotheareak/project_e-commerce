@@ -266,7 +266,7 @@ $profileImage = ($user->profile && $user->profile->image)
 
                     <li class="nav-item">
                         <a href="{{ route('payments') }}" class="nav-link text-white d-flex align-items-center gap-2">
-                            <i class="fas fa-money-check-alt me-2"></i><span>Payment Methods</span>
+                            <i class="fas fa-money-check-alt me-2"></i><span>Payment</span>
                         </a>
                     </li>
 

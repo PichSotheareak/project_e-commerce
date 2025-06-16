@@ -1,13 +1,11 @@
-@php
-$staff = $staff ?? null;
-$profileImage = ($staff && $staff->profile && $staff->profile->image)
-? asset('storage/' . $staff->profile->image)
-: asset('assets/img/default-profile.jpg');
-@endphp
-
 @extends('admin.master')
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
 @section('content')
-    <div id="app">
+    <div id="app" v-cloak>
         <div class="page-inner">
             <div  class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4 justify-content-between">
                 <div>
@@ -25,7 +23,7 @@ $profileImage = ($staff && $staff->profile && $staff->profile->image)
                     <div class="card card-round">
                         <div class="card-header">
                             <div class="card-head-row">
-<!--                                <div class="card-title">Staff Members</div>-->
+                                <div class="card-title">Staff Members</div>
                                 <div class="card-tools">
                                     <div class="row justify-content-end align-items-center g-2">
                                         <div class="col-auto">
@@ -78,13 +76,10 @@ $profileImage = ($staff && $staff->profile && $staff->profile->image)
                                         </thead>
                                         <tbody>
                                         <tr v-for="(staff, index) in displayedStaff" :key="staff.id">
-                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ index + 1 }}</td>
+                                            <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ staff.id }}</td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">
-                                                <img
-                                                    src="{{ $profileImage }}"
-                                                    alt="{{ $staff->name ?? 'Staff' }} Profile"
-                                                    class="avatar-img rounded-circle"
-                                                />
+                                                <img :src="api_url+'/storage/'+ staff.profile"
+                                                     alt="Profile" class="profile-img rounded-circle">
                                             </td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.name)"></td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ staff.gender }}</td>

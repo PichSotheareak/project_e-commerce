@@ -1,6 +1,11 @@
 @extends('admin.master')
+<style>
+    [v-cloak] {
+        display: none;
+    }
+</style>
 @section('content')
-    <div id="app">
+    <div id="app" v-cloak>
         <div class="page-inner">
             <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4 justify-content-between">
                 <div>
