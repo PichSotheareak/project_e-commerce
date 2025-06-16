@@ -1,3 +1,10 @@
+@php
+$staff = $staff ?? null;
+$profileImage = ($staff && $staff->profile && $staff->profile->image)
+? asset('storage/' . $staff->profile->image)
+: asset('assets/img/default-profile.jpg');
+@endphp
+
 @extends('admin.master')
 @section('content')
     <div id="app">
@@ -18,7 +25,7 @@
                     <div class="card card-round">
                         <div class="card-header">
                             <div class="card-head-row">
-                                <div class="card-title">Staff Members</div>
+<!--                                <div class="card-title">Staff Members</div>-->
                                 <div class="card-tools">
                                     <div class="row justify-content-end align-items-center g-2">
                                         <div class="col-auto">
@@ -73,8 +80,11 @@
                                         <tr v-for="(staff, index) in displayedStaff" :key="staff.id">
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ index + 1 }}</td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">
-                                                <img :src="api_url+'/storage/'+ staff.profile"
-                                                     alt="Profile" class="profile-img rounded-circle">
+                                                <img
+                                                    src="{{ $profileImage }}"
+                                                    alt="{{ $staff->name ?? 'Staff' }} Profile"
+                                                    class="avatar-img rounded-circle"
+                                                />
                                             </td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.name)"></td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ staff.gender }}</td>

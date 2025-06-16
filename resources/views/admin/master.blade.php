@@ -252,21 +252,21 @@ $profileImage = ($user->profile && $user->profile->image)
                     </li>
 
                     <li class="nav-item">
-                        <a href="/orders" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a  href="{{ route('orders') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-shopping-cart me-2"></i><span>Orders</span>
                         </a>
                     </li>
 
 
                     <li class="nav-item">
-                        <a href="/invoices" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('invoice') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-file-invoice-dollar me-2"></i><span>Invoices</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="/payments" class="nav-link text-white d-flex align-items-center gap-2">
-                            <i class="fas fa-credit-card me-2"></i><span>Payments</span>
+                        <a href="{{ route('payments') }}" class="nav-link text-white d-flex align-items-center gap-2">
+                            <i class="fas fa-money-check-alt me-2"></i><span>Payment Methods</span>
                         </a>
                     </li>
 
@@ -289,7 +289,7 @@ $profileImage = ($user->profile && $user->profile->image)
                     </li>
 
                     <li class="nav-item">
-                        <a href="/contact-us" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('contactUs') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-envelope me-2"></i><span>Contact Us</span>
                         </a>
                     </li>
@@ -539,8 +539,8 @@ $profileImage = ($user->profile && $user->profile->image)
 <script src="{{ asset('assets/js/kaiadmin.min.js') }}"></script>
 
 <!-- Kaiadmin DEMO methods, don't include it in your project! -->
-<script src="{{ asset('assets/js/setting-demo.js') }}"></script>
-<script src="{{ asset('assets/js/demo.js') }}"></script>
+<!--<script src="{{ asset('assets/js/setting-demo.js') }}"></script>-->
+<!--<script src="{{ asset('assets/js/demo.js') }}"></script>-->
 
 <!-- Font Awesome JS (defer loading) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js" defer></script>
