@@ -222,31 +222,31 @@ $profileImage = ($user->profile && $user->profile->image)
                     </li>
 
                     <li class="nav-item">
-                        <a href="/branches" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('branches') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-code-branch me-2"></i><span>Branches</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="/brands" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('brands') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-tags me-2"></i><span>Brands</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="/categories" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('categories') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-list-alt me-2"></i><span>Categories</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="/products" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('products') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-box-open me-2"></i><span>Products</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="/product-details" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('productDetails') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-info-circle me-2"></i><span>Product Details</span>
                         </a>
                     </li>
@@ -257,21 +257,10 @@ $profileImage = ($user->profile && $user->profile->image)
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a href="/order-details" class="nav-link text-white d-flex align-items-center gap-2">
-                            <i class="fas fa-receipt me-2"></i><span>Order Details</span>
-                        </a>
-                    </li>
 
                     <li class="nav-item">
                         <a href="{{ route('invoice') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-file-invoice-dollar me-2"></i><span>Invoices</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="/payments" class="nav-link text-white d-flex align-items-center gap-2">
-                            <i class="fas fa-credit-card me-2"></i><span>Payments</span>
                         </a>
                     </li>
 
@@ -282,7 +271,7 @@ $profileImage = ($user->profile && $user->profile->image)
                     </li>
 
                     <li class="nav-item">
-                        <a href="/customers" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('customers') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-user-friends me-2"></i><span>Customers</span>
                         </a>
                     </li>
@@ -294,14 +283,8 @@ $profileImage = ($user->profile && $user->profile->image)
                     </li>
 
                     <li class="nav-item">
-                        <a href="/users" class="nav-link text-white d-flex align-items-center gap-2">
+                        <a href="{{ route('users') }}" class="nav-link text-white d-flex align-items-center gap-2">
                             <i class="fas fa-users me-2"></i><span>Users</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="/profile" class="nav-link text-white d-flex align-items-center gap-2">
-                            <i class="fas fa-id-badge me-2"></i><span>Profile</span>
                         </a>
                     </li>
 
@@ -517,29 +500,9 @@ $profileImage = ($user->profile && $user->profile->image)
         </div>
 
         <footer class="footer">
-            <div class="container-fluid d-flex justify-content-between">
-                <nav class="pull-left">
-                    <ul class="nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                Beynak
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"> Help </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"> Licenses </a>
-                        </li>
-                    </ul>
-                </nav>
-                <div>
-                    Distributed by
-                    <a target="_blank" href="https://themewagon.com/">ThemeWagon</a>.
-                </div>
-            </div>
         </footer>
     </div>
+
 </div>
 
 <!--   Core JS Files   -->

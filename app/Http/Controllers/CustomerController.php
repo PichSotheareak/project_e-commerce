@@ -13,12 +13,13 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json([
-            'data' => Customer::all(),
-            'count' => Customer::count()
-        ]);
+        $query = Customer::query();
+        if ($request->has('with_deleted') && $request->with_deleted) {
+            $query->withTrashed();
+        }
+        return response()->json(['data' => $query->get()]);
     }
 
     /**
@@ -26,7 +27,7 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:50',
             'gender' => 'nullable|string|max:6',
             'email' => 'required|email|unique:customers,email',
@@ -36,25 +37,16 @@ class CustomerController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $imageCustomer = null;
+        $validated['password'] = Hash::make($validated['password']);
         if ($request->hasFile('image')) {
-            $imageCustomer = $request->file('image')->store('customer', 'public');
+            $validated['image'] = $request->file('image')->store('customers', 'public');
         }
 
-        $customer = Customer::create([
-            'name' => $request -> name,
-            'gender' => $request -> gender,
-            'email' => $request -> email,
-            'phone' => $request -> phone,
-            'address' => $request -> address,
-            'password' => Hash::make($request -> password),
-            'image' => $imageCustomer,
-            'created_at' => now(),
-        ]);
+        $customer = Customer::create($validated);
         return response()->json([
             'data' => $customer,
             'message' => 'Customer created successfully'
-        ]);
+        ], 201);
     }
 
     /**
@@ -62,9 +54,11 @@ class CustomerController extends Controller
      */
     public function show(string $id)
     {
-        return response()->json([
-            'data' => Customer::find($id)
-        ]);
+        $customer = Customer::find($id);
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
+        return response()->json(['data' => $customer]);
     }
 
     /**
@@ -73,7 +67,10 @@ class CustomerController extends Controller
     public function update(Request $request, string $id)
     {
         $customer = Customer::find($id);
-        $request->validate([
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
+        $validated = $request->validate([
             'name' => 'required|string|max:50',
             'gender' => 'nullable|string|max:6',
             'email' => 'required|email|unique:customers,email,' .$id,
@@ -83,25 +80,27 @@ class CustomerController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
+        if ($request->filled('password')) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
         if ($request->hasFile('image')) {
             if ($customer->image) {
                 Storage::disk('public')->delete($customer->image);
             }
-
-            $imageCustomer = $request->file('image')->store('customer', 'public');
-            $customer->image = $imageCustomer;
+            $validated['image'] = $request->file('image')->store('customers', 'public');
+        } elseif ($request->input('remove_image') == '1') {
+            if ($customer->image) {
+                Storage::disk('public')->delete($customer->image);
+            }
+            $validated['image'] = null;
+        } else {
+            $validated['image'] = $customer->image;
         }
 
-        $customer -> update([
-            'name' => $request -> name,
-            'gender' => $request -> gender,
-            'email' => $request -> email,
-            'phone' => $request -> phone,
-            'address' => $request -> address,
-            'password' => Hash::make($request -> password),
-            'image' => $imageCustomer,
-            'updated_at' => now(),
-        ]);
+        $customer->update($validated);
         return response()->json([
             'data' => $customer,
             'message' => 'Customer updated successfully'
@@ -114,10 +113,41 @@ class CustomerController extends Controller
     public function destroy(string $id)
     {
         $customer = Customer::find($id);
-        $customer -> delete();
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
+
+        $customer->delete();
+        return response()->json(['message' => 'Customer soft deleted successfully']);
+    }
+
+    public function restore(string $id)
+    {
+        $customer = Customer::withTrashed()->find($id);
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
+
+        $customer->restore();
         return response()->json([
-            'message' => 'Customer deleted successfully'
+            'data' => $customer,
+            'message' => 'Customer restored successfully'
         ]);
+    }
+
+    public function forceDelete(string $id)
+    {
+        $customer = Customer::withTrashed()->find($id);
+        if (!$customer) {
+            return response()->json(['message' => 'Customer not found'], 404);
+        }
+
+        if ($customer->image) {
+            Storage::disk('public')->delete($customer->image);
+        }
+
+        $customer->forceDelete();
+        return response()->json(['message' => 'Customer permanently deleted successfully']);
     }
 
     public function login(Request $request)

@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -16,12 +15,15 @@ class UserController extends Controller
      * Display a listing of the resource.
      */
 
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json([
-            "data" => User::with('profile')->get()
-        ]);
-
+        $query = User::with('profile');
+        if ($request->has('with_deleted') && $request->with_deleted) {
+            $query->withTrashed()->with(['profile' => function ($q) {
+                $q->withTrashed();
+            }]);
+        }
+        return response()->json(['data' => $query->get()]);
     }
 
     /**
@@ -29,12 +31,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:50',
-            'gender' => 'nullable|string|in:male,female,other',
+            'gender' => 'nullable|string|in:Male,Female',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'status' => 'nullable|string|in:enable,disable',
+            'status' => 'nullable|string|in:Enable,Disable',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'type' => 'nullable|string',
@@ -42,47 +44,34 @@ class UserController extends Controller
 
         ]);
 
-        DB::beginTransaction();
+        return DB::transaction(function () use ($request, $validated) {
+            $userData = [
+                'name' => $validated['name'],
+                'gender' => $validated['gender'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'status' => $validated['status'],
+            ];
 
-        try {
-            $user = User::create([
-                'name' => $request->name,
-                'gender' => $request->gender,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'status' => $request -> status,
-                'created_at' => now(),
-            ]);
+            $user = User::create($userData);
+
+            $profileData = [
+                'phone' => $validated['phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'type' => $validated['type'] ?? null,
+            ];
 
             if ($request->hasFile('image')) {
-                $image = $request->file('image')->store('profile', 'public');
-            }
-            else{
-                $image = null;
+                $profileData['image'] = $request->file('image')->store('users', 'public');
             }
 
-            Profile::create([
-                'user_id' => $user->id,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'type' => $request->type,
-                'image' => $image,
-                'created_at' => now(),
-            ]);
-
-            DB::commit();
+            $user->profile()->create($profileData);
 
             return response()->json([
-                'data' => $user->load('profile'),
+                'data' => User::with('profile')->find($user->id),
                 'message' => 'User created successfully'
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'error' => 'something went wrong: ' . $e->getMessage()
-            ],500);
-        }
+            ], 201);
+        });
     }
 
     /**
@@ -90,13 +79,11 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::find($id);
-
-        if(!$user){
+        $user = User::with('profile')->find($id);
+        if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-        $user->load('profile');
-        return response()->json([$user]);
+        return response()->json(['data' => $user]);
     }
 
     /**
@@ -104,16 +91,16 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $user = User::find($id);
-        if(!$user){
+        $user = User::with('profile')->find($id);
+        if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:50',
-            'gender' => 'nullable|string|in:male,female,other',
+            'gender' => 'nullable|string|in:Male,Female',
             'email' => 'required|email|unique:users,email,' .$id,
             'password' => 'required|string|min:8',
-            'status' => 'nullable|string|in:enable,disable',
+            'status' => 'nullable|string|in:Enable,Disable',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'type' => 'nullable|string',
@@ -121,33 +108,51 @@ class UserController extends Controller
 
         ]);
 
-        $user -> update([
-            'name' => $request -> name,
-            'gender' => $request -> gender,
-            'email' => $request -> email,
-            'password' => Hash::make($request -> password),
-            'status' => $request -> status,
-            'updated_at' => now(),
-        ]);
+        return DB::transaction(function () use ($request, $validated, $user) {
+            $userData = [
+                'name' => $validated['name'],
+                'gender' => $validated['gender'],
+                'email' => $validated['email'],
+                'status' => $validated['status'],
+            ];
 
-        $profile = Profile::where("user_id", "=", $user->id )->first();
-
-        if($request -> hasFile('image')) {
-            if($profile -> image) {
-                Storage::disk('public')->delete($profile -> image);
+            if ($request->filled('password')) {
+                $userData['password'] = Hash::make($validated['password']);
             }
-            $profile -> image = $request -> file('image')->store('profile', 'public');
-        }
-        $profile -> update([
-            'phone' => $request -> phone,
-            'address' => $request -> address,
-            'type' => $request -> type,
-            'updated_at' => now(),
-        ]);
-        return response()->json([
-            'data' => $user->load('profile'),
-            'message' => 'User updated successfully'
-        ]);
+
+            $user->update($userData);
+
+            $profileData = [
+                'phone' => $validated['phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'type' => $validated['type'] ?? null,
+            ];
+
+            if ($request->hasFile('image')) {
+                if ($user->profile && $user->profile->image) {
+                    Storage::disk('public')->delete($user->profile->image);
+                }
+                $profileData['image'] = $request->file('image')->store('users', 'public');
+            } elseif ($request->input('remove_image') == '1') {
+                if ($user->profile && $user->profile->image) {
+                    Storage::disk('public')->delete($user->profile->image);
+                }
+                $profileData['image'] = null;
+            } else {
+                $profileData['image'] = $user->profile ? $user->profile->image : null;
+            }
+
+            if ($user->profile) {
+                $user->profile->update($profileData);
+            } else {
+                $user->profile()->create($profileData);
+            }
+
+            return response()->json([
+                'data' => User::with('profile')->find($user->id),
+                'message' => 'User updated successfully'
+            ]);
+        });
     }
 
     /**
@@ -156,12 +161,55 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::find($id);
-
-        if(!$user){
+        if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-        $user->delete();
-        return response()->json(['message' => 'User deleted successfully'], 200);
+
+        return DB::transaction(function () use ($user) {
+            if ($user->profile) {
+                $user->profile->delete();
+            }
+            $user->delete();
+            return response()->json(['message' => 'User soft deleted successfully']);
+        });
+    }
+
+    public function restore(string $id)
+    {
+        $user = User::withTrashed()->find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return DB::transaction(function () use ($user) {
+            $user->restore();
+            if ($user->profile()->withTrashed()->exists()) {
+                $user->profile()->restore();
+            }
+            return response()->json([
+                'data' => User::with('profile')->find($user->id),
+                'message' => 'User restored successfully'
+            ]);
+        });
+    }
+
+    public function forceDelete(string $id)
+    {
+        $user = User::withTrashed()->find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return DB::transaction(function () use ($user) {
+            if ($user->profile()->withTrashed()->exists()) {
+                if ($user->profile()->withTrashed()->first()->image) {
+                    Storage::disk('public')->delete($user->profile()->withTrashed()->first()->image);
+                }
+                $user->profile()->forceDelete();
+            }
+            $user->forceDelete();
+            return response()->json(['message' => 'User permanently deleted successfully']);
+        });
     }
 
     public function login(Request $request)
@@ -173,16 +221,21 @@ class UserController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
         }
 
-        // Create Sanctum token
-        $apiToken = $user->createToken('api-token')->plainTextToken;
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Password does not match'], 401);
+        }
+
+        $user->tokens()->delete();
+
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Login successful',
-            'token' => $apiToken,
+            'message' => 'User login successfully',
+            'token' => $token,
             'user' => $user,
         ]);
     }
