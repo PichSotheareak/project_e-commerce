@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\admin\DashboardController;
+use App\Http\Controllers\admin\StaffController;
 use App\Http\Controllers\admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,9 +20,8 @@ Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 */
 Route::middleware(['auth'])->group(function () {
     // Dashboard
-    Route::get('/', function () {
-        return view('admin.dashboard.index');
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/staff', [StaffController::class, 'index'])->name('staff');
 
     // Management Routes
     Route::view('/branches', 'admin.branches')->name('branches');
@@ -37,7 +38,6 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/payment-methods', 'admin.payment-methods')->name('payment.methods');
 
     Route::view('/customers', 'admin.customers')->name('customers');
-    Route::view('/staff', 'admin.Staff.index')->name('staff');
     Route::view('/users', 'admin.users')->name('users');
     Route::view('/profile', 'admin.profile')->name('profile');
     Route::view('/contact-us', 'admin.contact')->name('contact.us');
