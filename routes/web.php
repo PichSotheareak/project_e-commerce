@@ -29,11 +29,11 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/products', 'admin.products')->name('products');
     Route::view('/product-details', 'admin.product-details')->name('product.details');
 
-    Route::view('/orders', 'admin.orders')->name('orders');
+    Route::view('/orders', 'admin.Orders.index')->name('orders');
     Route::view('/order-details', 'admin.order-details')->name('order.details');
-    Route::view('/invoices', 'admin.invoices')->name('invoices');
+    Route::view('/invoice', 'admin.invoice.index')->name('invoice');
 
-    Route::view('/payments', 'admin.payments')->name('payments');
+    Route::view('/payments', 'admin.payments.index')->name('payments');
     Route::view('/payment-methods', 'admin.payment-methods')->name('payment.methods');
 
     Route::view('/customers', 'admin.customers')->name('customers');
