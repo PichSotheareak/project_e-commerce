@@ -40,38 +40,36 @@ Route::get('/user', function (Request $request) {
 Route::post("auth/login", [UserController::class, "login"]);
 Route::post("login", [CustomerController::class, "login"]);
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::apiResource("branches", BranchesController::class);
-    Route::post('branches/{id}/restore', [BranchesController::class, 'restore']);
-    Route::delete('branches/{id}/force', [BranchesController::class, 'forceDelete']);
+Route::apiResource("branches", BranchesController::class);
+Route::post('branches/{id}/restore', [BranchesController::class, 'restore']);
+Route::delete('branches/{id}/force', [BranchesController::class, 'forceDelete']);
 
-    Route::apiResource('categories', CategoryController::class);
-    Route::post('categories/{id}/restore', [CategoryController::class, 'restore']);
-    Route::delete('categories/{id}/force', [CategoryController::class, 'forceDelete']);
+Route::apiResource('categories', CategoryController::class);
+Route::post('categories/{id}/restore', [CategoryController::class, 'restore']);
+Route::delete('categories/{id}/force', [CategoryController::class, 'forceDelete']);
 
-    Route::apiResource("products", ProductController::class);
-    Route::post('products/{id}/restore', [ProductController::class, 'restore']);
-    Route::delete('products/{id}/force', [ProductController::class, 'forceDelete']);
+Route::apiResource("products", ProductController::class);
+Route::post('products/{id}/restore', [ProductController::class, 'restore']);
+Route::delete('products/{id}/force', [ProductController::class, 'forceDelete']);
 
-    Route::apiResource("brand", BrandController::class);
+Route::apiResource("brand", BrandController::class);
 
-    Route::apiResource("productDetails", ProductDetailsController::class);
+Route::apiResource("productDetails", ProductDetailsController::class);
 
-    Route::apiResource("customers", CustomerController::class);
-    Route::post('customers/{id}/restore', [CustomerController::class, 'restore']);
-    Route::delete('customers/{id}/force', [CustomerController::class, 'forceDelete']);
+Route::apiResource("customers", CustomerController::class);
+Route::post('customers/{id}/restore', [CustomerController::class, 'restore']);
+Route::delete('customers/{id}/force', [CustomerController::class, 'forceDelete']);
 
-    Route::apiResource("paymentMethod", PaymentMethodController::class);
-    Route::apiResource("contactUs", ContactUsController::class);
-    Route::apiResource("staff", StaffController::class);
-    Route::apiResource("orders", OrdersController::class);
-    Route::apiResource("orderDetails", OrderDetailsController::class);
-    Route::apiResource("invoices", InvoicesController::class);
-    Route::apiResource("invoiceItems", InvoiceItemsController ::class);
-    Route::apiResource("payments", PaymentsController::class);
+Route::apiResource("paymentMethod", PaymentMethodController::class);
+Route::apiResource("contactUs", ContactUsController::class);
+Route::apiResource("staff", StaffController::class);
+Route::apiResource("orders", OrdersController::class);
+Route::apiResource("orderDetails", OrderDetailsController::class);
+Route::apiResource("invoices", InvoicesController::class);
+Route::apiResource("invoiceItems", InvoiceItemsController ::class);
+Route::apiResource("payments", PaymentsController::class);
 
-    Route::apiResource("users", UserController::class);
-    Route::post('users/{id}/restore', [UserController::class, 'restore']);
-    Route::delete('users/{id}/force', [UserController::class, 'forceDelete']);
-});
+Route::apiResource("users", UserController::class);
+Route::post('users/{id}/restore', [UserController::class, 'restore']);
+Route::delete('users/{id}/force', [UserController::class, 'forceDelete']);
 //get, get1, post, put, delete
