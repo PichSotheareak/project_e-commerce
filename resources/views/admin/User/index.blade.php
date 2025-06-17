@@ -391,7 +391,7 @@
             if (token) {
                 config.headers['Authorization'] = `Bearer ${token}`;
             }
-            console.log('Token:', token);
+            console.log('Request:', config);
             return config;
         }, error => {
             return Promise.reject(error);
@@ -445,14 +445,13 @@
                     return this.filteredUserList.length;
                 },
                 totalPages() {
-                    return Math.ceil(this.totalFilteredRecords / this.pageSize);
+                    return Math.max(1, Math.ceil(this.totalFilteredRecords / this.pageSize));
                 },
                 startRecord() {
                     return this.totalFilteredRecords === 0 ? 0 : (this.currentPage - 1) * this.pageSize + 1;
                 },
                 endRecord() {
-                    const end = this.currentPage * this.pageSize;
-                    return Math.min(end, this.totalFilteredRecords);
+                    return this.totalFilteredRecords === 0 ? 0 : Math.min(this.currentPage * this.pageSize, this.totalFilteredRecords);
                 },
                 displayedUsers() {
                     const start = (this.currentPage - 1) * this.pageSize;
@@ -493,16 +492,13 @@
                     try {
                         this.loading = true;
                         this.errorMessage = null;
-                        console.log('Fetching user data with showDeleted:', this.showDeleted);
                         const response = await axios.get(`/api/users`, {
                             params: { with_deleted: this.showDeleted ? 1 : 0 }
                         });
-                        console.log('API Response:', response.data);
-                        this.userList = Array.isArray(response.data) ? response.data : (response.data.data || []);
+                        this.userList = Array.isArray(response.data.data) ? response.data.data : [];
                         this.totalUserCount = this.userList.length;
                         this.filteredUserList = [...this.userList];
                         this.executeSearch();
-                        console.log('After loadUsers - userList:', this.userList, 'totalUserCount:', this.totalUserCount);
                     } catch (error) {
                         console.error('Error loading users:', error.response ? error.response.data : error.message);
                         this.errorMessage = this.getErrorMessage(error, 'Failed to load user data');
@@ -521,19 +517,18 @@
                     if (this.searchQuery.trim()) {
                         const query = this.searchQuery.toLowerCase().trim();
                         filtered = filtered.filter(user =>
-                            (user.name && user.name.toLowerCase().includes(query)) ||
-                            (user.email && user.email.toLowerCase().includes(query)) ||
-                            (user.status && user.status.toLowerCase().includes(query)) ||
-                            (user.profile && user.profile.phone && user.profile.phone.toLowerCase().includes(query)) ||
-                            (user.profile && user.profile.address && user.profile.address.toLowerCase().includes(query)) ||
-                            (user.profile && user.profile.type && user.profile.type.toLowerCase().includes(query))
+                            (user.name?.toLowerCase().includes(query) || false) ||
+                            (user.email?.toLowerCase().includes(query) || false) ||
+                            (user.status?.toLowerCase().includes(query) || false) ||
+                            (user.profile?.phone?.toLowerCase().includes(query) || false) ||
+                            (user.profile?.address?.toLowerCase().includes(query) || false) ||
+                            (user.profile?.type?.toLowerCase().includes(query) || false)
                         );
                     }
                     if (this.selectedStatusFilter) {
                         filtered = filtered.filter(user => user.status?.toLowerCase() === this.selectedStatusFilter.toLowerCase());
                     }
                     this.filteredUserList = filtered;
-                    console.log('After executeSearch - filteredUserList:', this.filteredUserList);
                 },
                 highlightText(text) {
                     if (!this.searchQuery.trim() || !text) return text;
@@ -560,7 +555,7 @@
                         gender: '',
                         email: '',
                         password: '',
-                        status: '',
+                        status: null,
                         profile: { phone: '', address: '', type: '', image: null }
                     };
                     this.selectedFile = null;
@@ -572,8 +567,12 @@
                 openEditModal(user) {
                     this.isEditing = true;
                     this.currentUser = {
-                        ...user,
+                        id: user.id,
+                        name: user.name || '',
+                        gender: user.gender || '',
+                        email: user.email || '',
                         password: '',
+                        status: user.status || null,
                         profile: {
                             phone: user.profile?.phone || '',
                             address: user.profile?.address || '',
@@ -585,7 +584,6 @@
                     this.imageSrc = user.profile?.image ? `/storage/${user.profile.image}` : null;
                     this.removeImage = false;
                     this.formErrors = {};
-                    console.log('Editing User:', this.currentUser);
                     this.showOffcanvas('userOffcanvas');
                 },
                 viewUserDetails(user) {
@@ -596,22 +594,18 @@
                     const file = event.target.files[0];
                     if (file) {
                         const maxSize = 2 * 1024 * 1024;
-                        console.log('Selected File:', {
-                            name: file.name,
-                            size: file.size,
-                            type: file.type
-                        });
                         if (file.size > maxSize) {
-                            this.errorMessage = 'File size must be less than 2MB';
+                            this.formErrors.image = 'File size must be less than 2MB';
                             return;
                         }
                         if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-                            this.errorMessage = 'Please select a valid image file (JPG, JPEG, PNG)';
+                            this.formErrors.image = 'Please select a valid image file (JPG, JPEG, PNG)';
                             return;
                         }
                         this.selectedFile = file;
                         this.imageSrc = URL.createObjectURL(file);
-                        this.removeImage = false;
+                        this.removeImage = false; // Clear removeImage when new file is selected
+                        delete this.formErrors.image;
                     }
                 },
                 handleDragOver(e) {
@@ -639,11 +633,11 @@
                 },
                 validateForm() {
                     this.formErrors = {};
-                    if (!this.currentUser.name || this.currentUser.name.trim().length === 0) {
+                    if (!this.currentUser.name?.trim()) {
                         this.formErrors.name = 'Name is required';
                     }
-                    if (!this.currentUser.gender || !['Male', 'Female'].includes(this.currentUser.gender)) {
-                        this.formErrors.gender = 'The selected gender is invalid';
+                    if (!['Male', 'Female'].includes(this.currentUser.gender)) {
+                        this.formErrors.gender = 'Please select a valid gender';
                     }
                     if (!this.currentUser.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.currentUser.email)) {
                         this.formErrors.email = 'Valid email is required';
@@ -651,21 +645,17 @@
                     if (!this.isEditing && (!this.currentUser.password || this.currentUser.password.length < 8)) {
                         this.formErrors.password = 'Password must be at least 8 characters';
                     }
-                    if (!this.currentUser.status || !['Enable', 'Disable'].includes(this.currentUser.status)) {
-                        this.formErrors.status = 'The selected status is invalid';
-                    }
-                    if (this.currentUser.profile.phone && !/^\+?[0-9\s\-\(\)]{0,255}$/.test(this.currentUser.profile.phone)) {
+                    if (this.currentUser.profile?.phone && !/^\+?[0-9\s\-\(\)]{0,255}$/.test(this.currentUser.profile.phone)) {
                         this.formErrors.phone = 'Valid phone number is required';
                     }
                     if (this.selectedFile && !['image/jpeg', 'image/jpg', 'image/png'].includes(this.selectedFile.type)) {
                         this.formErrors.image = 'Image must be JPG, JPEG, or PNG';
                     }
-                    console.log('Validation Errors:', this.formErrors);
                     return Object.keys(this.formErrors).length === 0;
                 },
                 async saveUser() {
                     if (!this.validateForm()) {
-                        console.log('Validation failed:', this.formErrors);
+                        this.errorMessage = 'Please fix the errors in the form';
                         return;
                     }
                     try {
@@ -674,24 +664,18 @@
                         formData.append('name', this.currentUser.name || '');
                         formData.append('gender', this.currentUser.gender || '');
                         formData.append('email', this.currentUser.email || '');
-                        if (this.currentUser.password) {
-                            formData.append('password', this.currentUser.password);
-                        }
-                        formData.append('status', this.currentUser.status || '');
+                        if (this.currentUser.password) formData.append('password', this.currentUser.password);
+                        if (this.currentUser.status) formData.append('status', this.currentUser.status);
                         formData.append('phone', this.currentUser.profile?.phone || '');
                         formData.append('address', this.currentUser.profile?.address || '');
                         formData.append('type', this.currentUser.profile?.type || '');
-                        if (this.selectedFile) {
-                            formData.append('image', this.selectedFile);
-                        }
-                        if (this.removeImage) {
-                            formData.append('remove_image', '1');
-                        }
-                        formData.append('_method', this.isEditing ? 'PUT' : 'POST');
+                        if (this.selectedFile) formData.append('image', this.selectedFile);
+                        if (this.removeImage && !this.selectedFile) formData.append('remove_image', '1');
 
                         console.log('Form Data:', [...formData.entries()]);
                         const url = this.isEditing ? `/api/users/${this.currentUser.id}` : `/api/users`;
-                        const response = await axios.post(url, formData, {
+                        const method = this.isEditing ? axios.put : axios.post;
+                        const response = await method(url, formData, {
                             headers: { 'Content-Type': 'multipart/form-data' }
                         });
                         console.log('Response:', response.data);
@@ -712,13 +696,17 @@
                         });
                         const errors = error.response?.data?.errors;
                         if (errors) {
-                            Object.keys(errors).forEach(key => {
-                                this.formErrors[key] = errors[key][0];
-                            });
+                            Object.assign(this.formErrors, errors);
                             this.errorMessage = 'Please fix the errors in the form';
                         } else {
                             this.errorMessage = error.response?.data?.message || 'Failed to save user';
                         }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: this.errorMessage,
+                            confirmButtonText: 'OK'
+                        });
                     } finally {
                         this.saving = false;
                     }
@@ -729,7 +717,7 @@
                         gender: '',
                         email: '',
                         password: '',
-                        status: '',
+                        status: null,
                         profile: { phone: '', address: '', type: '', image: null }
                     };
                     this.selectedFile = null;
@@ -740,7 +728,6 @@
                     if (this.$refs.fileInput) this.$refs.fileInput.value = '';
                 },
                 async deleteUser(userId) {
-                    if (!userId) return;
                     const result = await Swal.fire({
                         title: 'Are you sure?',
                         text: "This will soft delete the user and their profile. You can restore it later.",
@@ -754,24 +741,15 @@
                         try {
                             await axios.delete(`/api/users/${userId}`);
                             await this.loadUsers();
-                            await Swal.fire(
-                                'Deleted!',
-                                'User has been soft deleted.',
-                                'success'
-                            );
+                            Swal.fire('Deleted!', 'User has been soft deleted.', 'success');
                         } catch (error) {
                             console.error('Error deleting user:', error);
-                            this.errorMessage = 'Failed to delete user';
-                            await Swal.fire(
-                                'Error!',
-                                'Failed to delete user.',
-                                'error'
-                            );
+                            this.errorMessage = this.getErrorMessage(error, 'Failed to delete user');
+                            Swal.fire('Error!', this.errorMessage, 'error');
                         }
                     }
                 },
                 async restoreUser(userId) {
-                    if (!userId) return;
                     const result = await Swal.fire({
                         title: 'Restore User?',
                         text: "This will restore the user and their profile to active status.",
@@ -783,26 +761,17 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.post(`/api/users/${userId}/restore`, {});
+                            await axios.post(`/api/users/${userId}/restore`);
                             await this.loadUsers();
-                            await Swal.fire(
-                                'Restored!',
-                                'User has been restored.',
-                                'success'
-                            );
+                            Swal.fire('Restored!', 'User has been restored.', 'success');
                         } catch (error) {
                             console.error('Error restoring user:', error);
-                            this.errorMessage = 'Failed to restore user';
-                            await Swal.fire(
-                                'Error!',
-                                'Failed to restore user.',
-                                'error'
-                            );
+                            this.errorMessage = this.getErrorMessage(error, 'Failed to restore user');
+                            Swal.fire('Error!', this.errorMessage, 'error');
                         }
                     }
                 },
                 async forceDeleteUser(userId) {
-                    if (!userId) return;
                     const result = await Swal.fire({
                         title: 'Permanently Delete User?',
                         text: "This action cannot be undone and will delete both the user and their profile!",
@@ -816,24 +785,27 @@
                         try {
                             await axios.delete(`/api/users/${userId}/force`);
                             await this.loadUsers();
-                            await Swal.fire(
-                                'Permanently Deleted!',
-                                'User and their profile have been permanently deleted.',
-                                'success'
-                            );
+                            Swal.fire('Permanently Deleted!', 'User and their profile have been permanently deleted.', 'success');
                         } catch (error) {
                             console.error('Error force deleting user:', error);
-                            this.errorMessage = 'Failed to permanently delete user';
-                            await Swal.fire(
-                                'Error!',
-                                'Failed to permanently delete user.',
-                                'error'
-                            );
+                            this.errorMessage = this.getErrorMessage(error, 'Failed to permanently delete user');
+                            Swal.fire('Error!', this.errorMessage, 'error');
                         }
                     }
                 },
                 formatDate(dateString) {
-                    return dateString ? new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+                    if (!dateString) return 'N/A';
+                    try {
+                        return new Date(dateString).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch {
+                        return 'Invalid Date';
+                    }
                 },
                 showOffcanvas(elementId) {
                     const element = document.getElementById(elementId);
@@ -852,14 +824,14 @@
                     }
                 },
                 getErrorMessage(error, defaultMessage = 'An error occurred') {
-                    if (error.response && error.response.data) {
+                    if (error.response?.data) {
                         if (error.response.data.errors) {
                             return Object.values(error.response.data.errors).flat().join(', ');
                         } else if (error.response.data.message) {
                             return error.response.data.message;
                         }
                     }
-                    return defaultMessage;
+                    return error.message || defaultMessage;
                 }
             },
             beforeUnmount() {

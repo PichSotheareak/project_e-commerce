@@ -45,9 +45,6 @@
                     <button class="btn btn-secondary rounded" type="button" @click="openAddModal" title="Add Brand">
                         <i class="fa-solid fa-plus fa-lg"></i>
                     </button>
-                    <button class="btn btn-info rounded ms-2" type="button" @click="toggleShowDeleted" title="Toggle Deleted Products">
-                        <i class="fa-solid fa-trash-restore fa-lg"></i> @{{ showDeleted ? 'Hide' : 'Show' }} Deleted
-                    </button>
                 </div>
             </div>
 
