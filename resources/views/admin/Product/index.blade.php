@@ -113,7 +113,7 @@
                                         <tr v-for="(product, index) in displayedProducts" :key="product.id">
                                             <td @click="viewProductDetails(product)" style="cursor: pointer;">@{{ index + 1 }}</td>
                                             <td @click="viewProductDetails(product)" style="cursor: pointer;">
-                                                <img :src="product.image ? api_url+'/storage/'+product.image : 'https://via.placeholder.com/50'"
+                                                <img :src="product.image ? '/storage/'+product.image : 'https://via.placeholder.com/50'"
                                                      alt="Product Image" class="product-img rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                                             </td>
                                             <td @click="viewProductDetails(product)" style="cursor: pointer;" v-html="highlightText(product.name)"></td>
@@ -329,7 +329,7 @@
                 </div>
                 <div class="offcanvas-body" v-if="viewProduct">
                     <div class="text-center mb-4">
-                        <img :src="viewProduct.image ? api_url+'/storage/'+viewProduct.image : 'https://via.placeholder.com/100'"
+                        <img :src="viewProduct.image ? '/storage/'+viewProduct.image : 'https://via.placeholder.com/100'"
                              alt="Product Image" class="rounded-circle shadow" width="100" height="100" style="object-fit: cover;">
                     </div>
                     <div class="card-body">
@@ -407,7 +407,6 @@
             data() {
                 return {
                     productList: [],
-                    api_url: 'https://su8.beynak.us',
                     filteredProductList: [],
                     categories: [],
                     brands: [],
@@ -509,7 +508,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching product data with showDeleted:', this.showDeleted);
-                        const response = await axios.get(`${this.api_url}/api/products`, {
+                        const response = await axios.get(`/api/products`, {
                             params: { with_deleted: this.showDeleted ? 1 : 0 }
                         });
                         console.log('API Response:', response.data);
@@ -529,7 +528,7 @@
                 },
                 async loadCategories() {
                     try {
-                        const response = await axios.get(`${this.api_url}/api/categories`, {
+                        const response = await axios.get(`/api/categories`, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                         this.categories = Array.isArray(response.data) ? response.data : (response.data.data || []);
@@ -541,7 +540,7 @@
                 },
                 async loadBrands() {
                     try {
-                        const response = await axios.get(`${this.api_url}/api/brand`, {
+                        const response = await axios.get(`/api/brand`, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                         this.brands = Array.isArray(response.data) ? response.data : (response.data.data || []);
@@ -611,7 +610,7 @@
                         inStock: product.inStock || ''
                     };
                     this.selectedFile = null;
-                    this.productImageSrc = product.image ? `${this.api_url}/storage/${product.image}` : null;
+                    this.productImageSrc = product.image ? `/storage/${product.image}` : null;
                     this.removeImage = false;
                     this.formErrors = {};
                     console.log('Editing Product:', this.currentProduct);
@@ -707,16 +706,16 @@
                         let response;
                         if (this.isEditing) {
                             formData.append('_method', 'PUT');
-                            console.log('Update Request URL:', `${this.api_url}/api/products/${this.currentProduct.id}`);
-                            response = await axios.post(`${this.api_url}/api/products/${this.currentProduct.id}`, formData, {
+                            console.log('Update Request URL:', `/api/products/${this.currentProduct.id}`);
+                            response = await axios.post(`/api/products/${this.currentProduct.id}`, formData, {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'Content-Type': 'multipart/form-data'
                                 }
                             });
                         } else {
-                            console.log('Add Request URL:', `${this.api_url}/api/products`);
-                            response = await axios.post(`${this.api_url}/api/products`, formData, {
+                            console.log('Add Request URL:', `/api/products`);
+                            response = await axios.post(`/api/products`, formData, {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'Content-Type': 'multipart/form-data'
@@ -772,7 +771,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/products/${productId}`, {
+                            await axios.delete(`/api/products/${productId}`, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadProducts();
@@ -805,7 +804,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.post(`${this.api_url}/api/products/${productId}/restore`, {}, {
+                            await axios.post(`/api/products/${productId}/restore`, {}, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadProducts();
@@ -838,7 +837,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/products/${productId}/force`, {
+                            await axios.delete(`/api/products/${productId}/force`, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadProducts();

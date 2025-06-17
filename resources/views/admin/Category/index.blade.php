@@ -262,7 +262,6 @@
             data() {
                 return {
                     categoryList: [],
-                    api_url: 'https://su8.beynak.us',
                     filteredCategoryList: [],
                     currentCategory: null,
                     viewCategory: null,
@@ -343,7 +342,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching category data with showDeleted:', this.showDeleted);
-                        const response = await axios.get(`${this.api_url}/api/categories`, {
+                        const response = await axios.get(`/api/categories`, {
                             params: { with_deleted: this.showDeleted ? 1 : 0 }
                         });
                         console.log('API Response:', response.data);
@@ -437,11 +436,11 @@
                         console.log('Form Data:', data);
                         let response;
                         if (this.isEditing) {
-                            response = await axios.put(`${this.api_url}/api/categories/${this.currentCategory.id}`, data, {
+                            response = await axios.put(`/api/categories/${this.currentCategory.id}`, data, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                         } else {
-                            response = await axios.post(`${this.api_url}/api/categories`, data, {
+                            response = await axios.post(`/api/categories`, data, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                         }
@@ -490,7 +489,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/categories/${categoryId}`, {
+                            await axios.delete(`/api/categories/${categoryId}`, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadCategories();
@@ -523,7 +522,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.post(`${this.api_url}/api/categories/${categoryId}/restore`, {}, {
+                            await axios.post(`/api/categories/${categoryId}/restore`, {}, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadCategories();
@@ -556,7 +555,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/categories/${categoryId}/force`, {
+                            await axios.delete(`/api/categories/${categoryId}/force`, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadCategories();

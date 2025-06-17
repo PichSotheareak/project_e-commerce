@@ -286,7 +286,6 @@
         data() {
             return {
                 paymentList: [],
-                api_url: 'https://su8.beynak.us',
                 filteredPaymentList: [],
                 invoices: [],
                 branches: [],
@@ -375,7 +374,7 @@
                     this.loading = true;
                     this.errorMessage = null;
                     console.log('Fetching payment data...');
-                    const response = await axios.get(`${this.api_url}/api/payments`, {
+                    const response = await axios.get(`/api/payments`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.paymentList = Array.isArray(response.data.data) ? response.data.data : [];
@@ -392,7 +391,7 @@
             },
             async loadInvoices() {
                 try {
-                    const response = await axios.get(`${this.api_url}/api/invoices`, {
+                    const response = await axios.get(`/api/invoices`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.invoices = Array.isArray(response.data.data) ? response.data.data : [];
@@ -403,7 +402,7 @@
             },
             async loadBranches() {
                 try {
-                    const response = await axios.get(`${this.api_url}/api/branches`, {
+                    const response = await axios.get(`/api/branches`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.branches = Array.isArray(response.data.data) ? response.data.data : [];
@@ -414,7 +413,7 @@
             },
             async loadPaymentMethods() {
                 try {
-                    const response = await axios.get(`${this.api_url}/api/payment-methods`, {
+                    const response = await axios.get(`/api/payment-methods`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.paymentMethods = Array.isArray(response.data.data) ? response.data.data : [];
@@ -506,11 +505,11 @@
 
                     let response;
                     if (this.isEditing) {
-                        response = await axios.put(`${this.api_url}/api/payments/${this.currentPayment.id}`, paymentData, {
+                        response = await axios.put(`/api/payments/${this.currentPayment.id}`, paymentData, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                     } else {
-                        response = await axios.post(`${this.api_url}/api/payments`, paymentData, {
+                        response = await axios.post(`/api/payments`, paymentData, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                     }
@@ -557,7 +556,7 @@
                     });
 
                     if (result.isConfirmed) {
-                        await axios.delete(`${this.api_url}/api/payments/${paymentId}`, {
+                        await axios.delete(`/api/payments/${paymentId}`, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
 

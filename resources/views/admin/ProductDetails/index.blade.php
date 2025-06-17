@@ -335,7 +335,6 @@
             data() {
                 return {
                     productDetailsList: [],
-                    api_url: 'https://su8.beynak.us',
                     filteredProductDetailsList: [],
                     currentProductDetail: null,
                     viewProductDetail: null,
@@ -416,7 +415,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching product details data...');
-                        const response = await axios.get(`${this.api_url}/api/productDetails`, {
+                        const response = await axios.get(`/api/productDetails`, {
                             params: { with_deleted: this.showDeleted ? 1 : 0 }
                         });
                         this.productDetailsList = Array.isArray(response.data) ? response.data : (response.data.data || []);
@@ -532,11 +531,11 @@
                         console.log('Data:', data);
                         let response;
                         if (this.isEditing) {
-                            response = await axios.put(`${this.api_url}/api/productDetails/${this.currentProductDetail.id}`, data, {
+                            response = await axios.put(`/api/productDetails/${this.currentProductDetail.id}`, data, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                         } else {
-                            response = await axios.post(`${this.api_url}/api/productDetails`, data, {
+                            response = await axios.post(`/api/productDetails`, data, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                         }
@@ -596,7 +595,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/productDetails/${productDetailId}`, {
+                            await axios.delete(`/api/productDetails/${productDetailId}`, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadProductDetails();
@@ -629,7 +628,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.post(`${this.api_url}/api/productDetails/${productDetailId}/restore`, {}, {
+                            await axios.post(`/api/productDetails/${productDetailId}/restore`, {}, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadProductDetails();
@@ -662,7 +661,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/productDetails/${productDetailId}/force`, {
+                            await axios.delete(`/api/productDetails/${productDetailId}/force`, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadProductDetails();

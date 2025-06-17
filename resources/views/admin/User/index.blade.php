@@ -109,7 +109,7 @@
                                         <tr v-for="(user, index) in displayedUsers" :key="user.id">
                                             <td @click="viewUserDetails(user)" style="cursor: pointer;">@{{ index + 1 }}</td>
                                             <td @click="viewUserDetails(user)" style="cursor: pointer;">
-                                                <img v-if="user.profile && user.profile.image" :src="api_url + '/storage/' + user.profile.image"
+                                                <img v-if="user.profile && user.profile.image" :src="'/storage/' + user.profile.image"
                                                      alt="User Image" class="profile-img rounded-circle" style="width: 40px; height: 40px;">
                                                 <span v-else>-</span>
                                             </td>
@@ -320,7 +320,7 @@
                 </div>
                 <div class="offcanvas-body" v-if="viewUser">
                     <div class="text-center mb-4">
-                        <img :src="viewUser.profile && viewUser.profile.image ? api_url + '/storage/' + viewUser.profile.image : 'https://via.placeholder.com/100'"
+                        <img :src="viewUser.profile && viewUser.profile.image ? '/storage/' + viewUser.profile.image : 'https://via.placeholder.com/100'"
                              alt="User Profile Image" class="rounded-circle shadow" width="100" height="100" style="object-fit: cover">
                     </div>
                     <div class="card-body">
@@ -403,7 +403,6 @@
             data() {
                 return {
                     userList: [],
-                    api_url: 'https://su8.beynak.us',
                     filteredUserList: [],
                     currentUser: null,
                     viewUser: null,
@@ -495,7 +494,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching user data with showDeleted:', this.showDeleted);
-                        const response = await axios.get(`${this.api_url}/api/users`, {
+                        const response = await axios.get(`/api/users`, {
                             params: { with_deleted: this.showDeleted ? 1 : 0 }
                         });
                         console.log('API Response:', response.data);
@@ -583,7 +582,7 @@
                         }
                     };
                     this.selectedFile = null;
-                    this.imageSrc = user.profile?.image ? `${this.api_url}/storage/${user.profile.image}` : null;
+                    this.imageSrc = user.profile?.image ? `/storage/${user.profile.image}` : null;
                     this.removeImage = false;
                     this.formErrors = {};
                     console.log('Editing User:', this.currentUser);
@@ -691,7 +690,7 @@
                         formData.append('_method', this.isEditing ? 'PUT' : 'POST');
 
                         console.log('Form Data:', [...formData.entries()]);
-                        const url = this.isEditing ? `${this.api_url}/api/users/${this.currentUser.id}` : `${this.api_url}/api/users`;
+                        const url = this.isEditing ? `/api/users/${this.currentUser.id}` : `/api/users`;
                         const response = await axios.post(url, formData, {
                             headers: { 'Content-Type': 'multipart/form-data' }
                         });
@@ -753,7 +752,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/users/${userId}`);
+                            await axios.delete(`/api/users/${userId}`);
                             await this.loadUsers();
                             await Swal.fire(
                                 'Deleted!',
@@ -784,7 +783,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.post(`${this.api_url}/api/users/${userId}/restore`, {});
+                            await axios.post(`/api/users/${userId}/restore`, {});
                             await this.loadUsers();
                             await Swal.fire(
                                 'Restored!',
@@ -815,7 +814,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/users/${userId}/force`);
+                            await axios.delete(`/api/users/${userId}/force`);
                             await this.loadUsers();
                             await Swal.fire(
                                 'Permanently Deleted!',

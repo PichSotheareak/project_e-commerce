@@ -257,7 +257,6 @@
         data() {
             return {
                 contactList: [],
-                api_url: 'https://su8.beynak.us',
                 filteredContactList: [],
                 currentContact: null,
                 viewContact: null,
@@ -328,7 +327,7 @@
                 try {
                     this.loading = true;
                     this.errorMessage = null;
-                    const response = await axios.get(`${this.api_url}/api/contactUs`, {
+                    const response = await axios.get(`/api/contactUs`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.contactList = Array.isArray(response.data.data) ? response.data.data : [];
@@ -432,11 +431,11 @@
 
                     let response;
                     if (this.isEditing) {
-                        response = await axios.put(`${this.api_url}/api/contactUs/${this.currentContact.id}`, contactData, {
+                        response = await axios.put(`/api/contactUs/${this.currentContact.id}`, contactData, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                     } else {
-                        response = await axios.post(`${this.api_url}/api/contactUs`, contactData, {
+                        response = await axios.post(`/api/contactUs`, contactData, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                     }
@@ -485,7 +484,7 @@
                     });
 
                     if (result.isConfirmed) {
-                        await axios.delete(`${this.api_url}/api/contactUs/${contactId}`, {
+                        await axios.delete(`/api/contactUs/${contactId}`, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
 

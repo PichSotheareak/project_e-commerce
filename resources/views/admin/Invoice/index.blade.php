@@ -340,7 +340,6 @@
         data() {
             return {
                 invoiceList: [],
-                api_url: 'https://su8.beynak.us',
                 filteredInvoiceList: [],
                 customers: [],
                 users: [],
@@ -431,7 +430,7 @@
                     this.loading = true;
                     this.errorMessage = null;
                     console.log('Fetching invoice data...');
-                    const response = await axios.get(`${this.api_url}/api/invoices`, {
+                    const response = await axios.get(`/api/invoices`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.invoiceList = Array.isArray(response.data.data) ? response.data.data : [];
@@ -448,7 +447,7 @@
             },
             async loadCustomers() {
                 try {
-                    const response = await axios.get(`${this.api_url}/api/customers`, {
+                    const response = await axios.get(`/api/customers`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.customers = Array.isArray(response.data.data) ? response.data.data : [];
@@ -459,7 +458,7 @@
             },
             async loadUsers() {
                 try {
-                    const response = await axios.get(`${this.api_url}/api/users`, {
+                    const response = await axios.get(`/api/users`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.users = Array.isArray(response.data.data) ? response.data.data : [];
@@ -470,7 +469,7 @@
             },
             async loadOrders() {
                 try {
-                    const response = await axios.get(`${this.api_url}/api/orders`, {
+                    const response = await axios.get(`/api/orders`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.orders = Array.isArray(response.data.data) ? response.data.data : [];
@@ -481,7 +480,7 @@
             },
             async loadPaymentMethods() {
                 try {
-                    const response = await axios.get(`${this.api_url}/api/payment-methods`, {
+                    const response = await axios.get(`/api/payment-methods`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     this.paymentMethods = Array.isArray(response.data.data) ? response.data.data : [];
@@ -584,11 +583,11 @@
 
                     let response;
                     if (this.isEditing) {
-                        response = await axios.put(`${this.api_url}/api/invoices/${this.currentInvoice.id}`, invoiceData, {
+                        response = await axios.put(`/api/invoices/${this.currentInvoice.id}`, invoiceData, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                     } else {
-                        response = await axios.post(`${this.api_url}/api/invoices`, invoiceData, {
+                        response = await axios.post(`/api/invoices`, invoiceData, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
                     }
@@ -635,7 +634,7 @@
                     });
 
                     if (result.isConfirmed) {
-                        await axios.delete(`${this.api_url}/api/invoices/${invoiceId}`, {
+                        await axios.delete(`/api/invoices/${invoiceId}`, {
                             headers: { Authorization: `Bearer ${token}` }
                         });
 

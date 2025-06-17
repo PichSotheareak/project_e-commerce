@@ -103,7 +103,7 @@
                                         <tr v-for="(branch, index) in displayedBranches" :key="branch.id">
                                             <td @click="viewBranchDetails(branch)" style="cursor: pointer;">@{{ index + 1 }}</td>
                                             <td @click="viewBranchDetails(branch)" style="cursor: pointer;">
-                                                <img v-if="branch.logo" :src="api_url + '/storage/' + branch.logo"
+                                                <img v-if="branch.logo" :src=" '/storage/' + branch.logo"
                                                      alt="Branch Logo" class="profile-img rounded-circle" style="width: 40px; height: 40px;">
                                                 <span v-else>-</span>
                                             </td>
@@ -338,7 +338,6 @@
             data() {
                 return {
                     branchList: [],
-                    api_url: 'https://su8.beynak.us',
                     filteredBranchList: [],
                     currentBranch: null,
                     viewBranch: null,
@@ -419,7 +418,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching branch data with showDeleted:', this.showDeleted);
-                        const response = await axios.get(`${this.api_url}/api/branches`, {
+                        const response = await axios.get(`/api/branches`, {
                             params: { with_deleted: this.showDeleted ? 1 : 0 }
                         });
                         console.log('API Response:', response.data);
@@ -484,7 +483,7 @@
                     this.currentBranch = {
                         ...branch,
                         logo_file: null,
-                        logo_preview: branch.logo ? `${this.api_url}/storage/${branch.logo}` : null
+                        logo_preview: branch.logo ? `/storage/${branch.logo}` : null
                     };
                     this.formErrors = {};
                     console.log('Editing Branch:', this.currentBranch);
@@ -539,7 +538,7 @@
                         formData.append('_method', this.isEditing ? 'PUT' : 'POST');
 
                         console.log('Form Data:', [...formData.entries()]);
-                        const url = this.isEditing ? `${this.api_url}/api/branches/${this.currentBranch.id}` : `${this.api_url}/api/branches`;
+                        const url = this.isEditing ? `/api/branches/${this.currentBranch.id}` : `/api/branches`;
                         const response = await axios.post(url, formData, {
                             headers: { 'Content-Type': 'multipart/form-data' }
                         });
@@ -588,7 +587,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/branches/${branchId}`);
+                            await axios.delete(`/api/branches/${branchId}`);
                             await this.loadBranches();
                             await Swal.fire(
                                 'Deleted!',
@@ -619,7 +618,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.post(`${this.api_url}/api/branches/${branchId}/restore`, {});
+                            await axios.post(`/api/branches/${branchId}/restore`, {});
                             await this.loadBranches();
                             await Swal.fire(
                                 'Restored!',
@@ -650,7 +649,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/branches/${branchId}/force`);
+                            await axios.delete(`/api/branches/${branchId}/force`);
                             await this.loadBranches();
                             await Swal.fire(
                                 'Permanently Deleted!',

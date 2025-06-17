@@ -78,7 +78,7 @@
                                         <tr v-for="(staff, index) in displayedStaff" :key="staff.id">
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">@{{ staff.id }}</td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;">
-                                                <img :src="api_url+'/storage/'+ staff.profile"
+                                                <img :src="'/storage/'+ staff.profile"
                                                      alt="Profile" class="profile-img rounded-circle">
                                             </td>
                                             <td @click="viewStaffDetails(staff)" style="cursor: pointer;" v-html="highlightText(staff.name)"></td>
@@ -346,7 +346,6 @@
             data() {
                 return {
                     staffList: [],
-                    api_url: 'https://su8.beynak.us',
                     filteredStaffList: [],
                     branches: [],
                     currentStaff: null,
@@ -435,7 +434,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching staff data...');
-                        const response = await axios.get(`${this.api_url}/api/staff`);
+                        const response = await axios.get(`/api/staff`);
                         this.staffList = Array.isArray(response.data) ? response.data : (response.data.data || []);
                         this.totalStaffCount = this.staffList.length;
                         this.filteredStaffList = [...this.staffList];
@@ -450,7 +449,7 @@
                 },
                 async loadBranches() {
                     try {
-                        const response = await axios.get(`${this.api_url}/api/branches`);
+                        const response = await axios.get(`/api/branches`);
                         this.branches = Array.isArray(response.data) ? response.data : (response.data.data || []);
                         console.log('Branches:', this.branches);
                     } catch (error) {
@@ -508,7 +507,7 @@
                     this.isEditing = true;
                     this.currentStaff = { ...staff, branches_id: staff.branches_id || '' };
                     this.selectedFile = null;
-                    this.profileImageSrc = staff.profile ? `${this.api_url}/storage/${staff.profile}` : null;
+                    this.profileImageSrc = staff.profile ? `/storage/${staff.profile}` : null;
                     this.removeProfile = false;
                     this.formErrors = {};
                     console.log('Editing Staff:', this.currentStaff);
@@ -601,11 +600,11 @@
                         let response;
                         if (this.isEditing) {
                             formData.append('_method', 'PUT');
-                            response = await axios.post(`${this.api_url}/api/staff/${this.currentStaff.id}`, formData, {
+                            response = await axios.post(`/api/staff/${this.currentStaff.id}`, formData, {
                                 headers: { 'Content-Type': 'multipart/form-data' }
                             });
                         } else {
-                            response = await axios.post(`${this.api_url}/api/staff`, formData, {
+                            response = await axios.post(`/api/staff`, formData, {
                                 headers: { 'Content-Type': 'multipart/form-data' }
                             });
                         }
@@ -658,7 +657,7 @@
 
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/staff/${staffId}`);
+                            await axios.delete(`/api/staff/${staffId}`);
                             await this.loadStaff();
 
                             await Swal.fire(

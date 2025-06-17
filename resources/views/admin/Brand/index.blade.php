@@ -100,7 +100,7 @@
                                         <tr v-for="(brand, index) in displayedBrands" :key="brand.id">
                                             <td @click="viewBrandDetails(brand)" style="cursor: pointer;">@{{ index + 1 }}</td>
                                             <td @click="viewBrandDetails(brand)" style="cursor: pointer;">
-                                                <img :src="brand.image ? api_url+'/storage/'+brand.image : 'https://via.placeholder.com/50'"
+                                                <img :src="brand.image ? '/storage/'+brand.image : 'https://via.placeholder.com/50'"
                                                      alt="Brand Image" class="brand-img rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">
                                             </td>
                                             <td @click="viewBrandDetails(brand)" style="cursor: pointer;" v-html="highlightText(brand.name)"></td>
@@ -316,7 +316,6 @@
             data() {
                 return {
                     brandList: [],
-                    api_url: 'https://su8.beynak.us',
                     filteredBrandList: [],
                     currentBrand: null,
                     viewBrand: null,
@@ -408,7 +407,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching brand data with showDeleted:', this.showDeleted);
-                        const response = await axios.get(`${this.api_url}/api/brand`, {
+                        const response = await axios.get(`/api/brand`, {
                             params: { with_deleted: this.showDeleted ? 1 : 0 }
                         });
                         console.log('API Response:', response.data);
@@ -473,7 +472,7 @@
                     this.isEditing = true;
                     this.currentBrand = { ...brand };
                     this.selectedFile = null;
-                    this.brandImageSrc = brand.image ? `${this.api_url}/storage/${brand.image}` : null;
+                    this.brandImageSrc = brand.image ? `/storage/${brand.image}` : null;
                     this.removeImage = false;
                     this.formErrors = {};
                     console.log('Editing Brand:', this.currentBrand);
@@ -555,16 +554,16 @@
                         let response;
                         if (this.isEditing) {
                             formData.append('_method', 'PUT');
-                            console.log('Update Request URL:', `${this.api_url}/api/brand/${this.currentBrand.id}`);
-                            response = await axios.post(`${this.api_url}/api/brand/${this.currentBrand.id}`, formData, {
+                            console.log('Update Request URL:', `/api/brand/${this.currentBrand.id}`);
+                            response = await axios.post(`/api/brand/${this.currentBrand.id}`, formData, {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'Content-Type': 'multipart/form-data'
                                 }
                             });
                         } else {
-                            console.log('Add Request URL:', `${this.api_url}/api/brand`);
-                            response = await axios.post(`${this.api_url}/api/brand`, formData, {
+                            console.log('Add Request URL:', `/api/brand`);
+                            response = await axios.post(`/api/brand`, formData, {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'Content-Type': 'multipart/form-data'
@@ -620,7 +619,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/brand/${brandId}`, {
+                            await axios.delete(`/api/brand/${brandId}`, {
                                 //headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadBrands();
@@ -653,7 +652,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.post(`${this.api_url}/api/brand/${brandId}/restore`, {}, {
+                            await axios.post(`/api/brand/${brandId}/restore`, {}, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadBrands();
@@ -686,7 +685,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/brand/${brandId}/force`, {
+                            await axios.delete(`/api/brand/${brandId}/force`, {
                                 headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadBrands();

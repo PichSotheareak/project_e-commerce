@@ -101,7 +101,7 @@
                                         <tr v-for="(customer, index) in displayedCustomers" :key="customer.id">
                                             <td @click="viewCustomerDetails(customer)" style="cursor: pointer;">@{{ index + 1 }}</td>
                                             <td @click="viewCustomerDetails(customer)" style="cursor: pointer;">
-                                                <img v-if="customer.image" :src="api_url + '/storage/' + customer.image"
+                                                <img v-if="customer.image" :src=" '/storage/' + customer.image"
                                                      alt="Customer Image" class="profile-img rounded-circle" style="width: 40px; height: 40px;">
                                                 <span v-else>-</span>
                                             </td>
@@ -367,7 +367,6 @@
             data() {
                 return {
                     customerList: [],
-                    api_url: window.location.origin,
                     filteredCustomerList: [],
                     currentCustomer: null,
                     viewCustomer: null,
@@ -452,7 +451,7 @@
                         this.loading = true;
                         this.errorMessage = null;
                         console.log('Fetching customer data with showDeleted:', this.showDeleted);
-                        const response = await axios.get(`${this.api_url}/api/customers`, {
+                        const response = await axios.get(`/api/customers`, {
                             params: { with_deleted: this.showDeleted ? 1 : 0 }
                         });
                         console.log('API Response:', response.data);
@@ -519,7 +518,7 @@
                     this.isEditing = true;
                     this.currentCustomer = { ...customer, password: '' }; // Clear password for edit
                     this.selectedFile = null;
-                    this.imageSrc = customer.image ? `${this.api_url}/storage/${customer.image}` : null;
+                    this.imageSrc = customer.image ? `/storage/${customer.image}` : null;
                     this.removeImage = false;
                     this.formErrors = {};
                     console.log('Editing Customer:', this.currentCustomer);
@@ -628,7 +627,7 @@
                         formData.append('_method', this.isEditing ? 'PUT' : 'POST');
 
                         console.log('Form Data:', [...formData.entries()]);
-                        const url = this.isEditing ? `${this.api_url}/api/customers/${this.currentCustomer.id}` : `${this.api_url}/api/customers`;
+                        const url = this.isEditing ? `/api/customers/${this.currentCustomer.id}` : `/api/customers`;
                         const response = await axios.post(url, formData, {
                             headers: { 'Content-Type': 'multipart/form-data' }
                         });
@@ -681,7 +680,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/customers/${customerId}`);
+                            await axios.delete(`/api/customers/${customerId}`);
                             await this.loadCustomers();
                             await Swal.fire(
                                 'Deleted!',
@@ -712,7 +711,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.post(`${this.api_url}/api/customers/${customerId}/restore`, {});
+                            await axios.post(`/api/customers/${customerId}/restore`, {});
                             await this.loadCustomers();
                             await Swal.fire(
                                 'Restored!',
@@ -743,7 +742,7 @@
                     });
                     if (result.isConfirmed) {
                         try {
-                            await axios.delete(`${this.api_url}/api/customers/${customerId}/force`);
+                            await axios.delete(`/api/customers/${customerId}/force`);
                             await this.loadCustomers();
                             await Swal.fire(
                                 'Permanently Deleted!',
