@@ -3,21 +3,6 @@
     [v-cloak] {
         display: none;
     }
-<<<<<<< HEAD
-    
-=======
-    .table-responsive td {
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .table-responsive td:hover {
-        white-space: normal;
-        overflow: visible;
-    }
-</style>
->>>>>>> b5aeb5cc29d02985582213ebf68447078117fb75
 @section('content')
 <div id="app" v-cloak>
     <div class="container-fluid mt-4">
