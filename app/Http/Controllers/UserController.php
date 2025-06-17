@@ -99,7 +99,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $id,
             'gender' => 'required|in:Male,Female',
-            'status' => 'required|in:Enable,Disable',
+            'status' => 'nullable|in:Enable,Disable',
             'password' => 'nullable|string|min:8',
             'phone' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
@@ -132,15 +132,17 @@ class UserController extends Controller
         ];
 
         // Handle image
-        if ($request->remove_image === '1' && $user->profile->image) {
-            Storage::delete('public/' . $user->profile->image); // Delete file
-            $profileData['image'] = null; // Clear image path
-        } elseif ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($user->profile->image) {
-                Storage::delete('public/' . $user->profile->image);
+        if ($request->remove_image == '1' && !empty($user->profile) && !empty($user->profile->image)) {
+            if (Storage::disk('public')->exists($user->profile->image)) {
+                Storage::disk('public')->delete($user->profile->image);
             }
-            // Store new image
+            $profileData['image'] = null;
+        } elseif ($request->hasFile('image')) {
+            if (!empty($user->profile) && !empty($user->profile->image)) {
+                if (Storage::disk('public')->exists($user->profile->image)) {
+                    Storage::disk('public')->delete($user->profile->image);
+                }
+            }
             $path = $request->file('image')->store('profiles', 'public');
             $profileData['image'] = $path;
         }
