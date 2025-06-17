@@ -3,6 +3,36 @@
     [v-cloak] {
         display: none;
     }
+    .brand-image-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .brand-image {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: red;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        padding: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .remove-btn i {
+        pointer-events: none; /* So only the button responds to click */
+    }
+
 </style>
 @section('content')
     <div id="app" v-cloak>
@@ -14,6 +44,9 @@
                 <div>
                     <button class="btn btn-secondary rounded" type="button" @click="openAddModal" title="Add Brand">
                         <i class="fa-solid fa-plus fa-lg"></i>
+                    </button>
+                    <button class="btn btn-info rounded ms-2" type="button" @click="toggleShowDeleted" title="Toggle Deleted Products">
+                        <i class="fa-solid fa-trash-restore fa-lg"></i> @{{ showDeleted ? 'Hide' : 'Show' }} Deleted
                     </button>
                 </div>
             </div>
@@ -283,7 +316,7 @@
             data() {
                 return {
                     brandList: [],
-                    api_url: 'http://127.0.0.1:8000',
+                    api_url: 'https://su8.beynak.us',
                     filteredBrandList: [],
                     currentBrand: null,
                     viewBrand: null,
@@ -588,7 +621,7 @@
                     if (result.isConfirmed) {
                         try {
                             await axios.delete(`${this.api_url}/api/brand/${brandId}`, {
-                                headers: { Authorization: `Bearer ${token}` }
+                                //headers: { Authorization: `Bearer ${token}` }
                             });
                             await this.loadBrands();
                             await Swal.fire(

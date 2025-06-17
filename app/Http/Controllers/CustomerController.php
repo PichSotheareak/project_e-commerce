@@ -39,7 +39,8 @@ class CustomerController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('customers', 'public');
+            $path = $request->file('image')->store('images', 'public');
+            $validated['image'] = $path;
         }
 
         $customer = Customer::create($validated);
@@ -86,18 +87,17 @@ class CustomerController extends Controller
             unset($validated['password']);
         }
 
-        if ($request->hasFile('image')) {
+        // Handle image removal
+        if ($request->input('remove_image') == '1' && $customer->image) {
+            Storage::disk('public')->delete($customer->image);
+            $data['image'] = null;
+        } elseif ($request->hasFile('image')) {
+            // Delete old image if exists
             if ($customer->image) {
                 Storage::disk('public')->delete($customer->image);
             }
-            $validated['image'] = $request->file('image')->store('customers', 'public');
-        } elseif ($request->input('remove_image') == '1') {
-            if ($customer->image) {
-                Storage::disk('public')->delete($customer->image);
-            }
-            $validated['image'] = null;
-        } else {
-            $validated['image'] = $customer->image;
+            $path = $request->file('image')->store('images', 'public');
+            $data['image'] = $path;
         }
 
         $customer->update($validated);

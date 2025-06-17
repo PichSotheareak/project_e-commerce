@@ -15,6 +15,9 @@
                     <button class="btn btn-secondary rounded" type="button" @click="openAddModal" title="Add Category">
                         <i class="fa-solid fa-plus fa-lg"></i>
                     </button>
+                    <button class="btn btn-info rounded ms-2" type="button" @click="toggleShowDeleted" title="Toggle Deleted Products">
+                        <i class="fa-solid fa-trash-restore fa-lg"></i> @{{ showDeleted ? 'Hide' : 'Show' }} Deleted
+                    </button>
                 </div>
             </div>
 
@@ -259,7 +262,7 @@
             data() {
                 return {
                     categoryList: [],
-                    api_url: 'http://127.0.0.1:8000',
+                    api_url: 'https://su8.beynak.us',
                     filteredCategoryList: [],
                     currentCategory: null,
                     viewCategory: null,

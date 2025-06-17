@@ -98,4 +98,32 @@ class BrandController extends Controller
             'message' => 'Record deleted successfully.'
         ]);
     }
+    public function restore(string $id)
+    {
+        $branch = Brand::withTrashed()->find($id);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+
+        $branch->restore();
+        return response()->json([
+            'data' => $branch,
+            'message' => 'Branch restored successfully'
+        ]);
+    }
+
+    public function forceDelete(string $id)
+    {
+        $branch = Brand::withTrashed()->find($id);
+        if (!$branch) {
+            return response()->json(['message' => 'Branch not found'], 404);
+        }
+
+        if ($branch->logo) {
+            Storage::disk('public')->delete($branch->logo);
+        }
+
+        $branch->forceDelete();
+        return response()->json(['message' => 'Branch permanently deleted successfully']);
+    }
 }

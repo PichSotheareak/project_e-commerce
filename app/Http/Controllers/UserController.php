@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -89,70 +90,67 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        $user = User::with('profile')->find($id);
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-        $validated = $request->validate([
-            'name' => 'required|string|max:50',
-            'gender' => 'nullable|string|in:Male,Female',
-            'email' => 'required|email|unique:users,email,' .$id,
-            'password' => 'required|string|min:8',
-            'status' => 'nullable|string|in:Enable,Disable',
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
-            'type' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        $user = User::with('profile')->findOrFail($id);
 
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $id,
+            'gender' => 'required|in:Male,Female',
+            'status' => 'required|in:Enable,Disable',
+            'password' => 'nullable|string|min:8',
+            'phone' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'type' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'remove_image' => 'nullable|string|in:1',
         ]);
 
-        return DB::transaction(function () use ($request, $validated, $user) {
-            $userData = [
-                'name' => $validated['name'],
-                'gender' => $validated['gender'],
-                'email' => $validated['email'],
-                'status' => $validated['status'],
-            ];
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
-            if ($request->filled('password')) {
-                $userData['password'] = Hash::make($validated['password']);
+        // Update user
+        $userData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'gender' => $request->gender,
+            'status' => $request->status,
+        ];
+        if ($request->password) {
+            $userData['password'] = bcrypt($request->password);
+        }
+        $user->update($userData);
+
+        // Update profile
+        $profileData = [
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'type' => $request->type,
+        ];
+
+        // Handle image
+        if ($request->remove_image === '1' && $user->profile->image) {
+            Storage::delete('public/' . $user->profile->image); // Delete file
+            $profileData['image'] = null; // Clear image path
+        } elseif ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($user->profile->image) {
+                Storage::delete('public/' . $user->profile->image);
             }
+            // Store new image
+            $path = $request->file('image')->store('profiles', 'public');
+            $profileData['image'] = $path;
+        }
 
-            $user->update($userData);
+        $user->profile()->updateOrCreate(['user_id' => $user->id], $profileData);
 
-            $profileData = [
-                'phone' => $validated['phone'] ?? null,
-                'address' => $validated['address'] ?? null,
-                'type' => $validated['type'] ?? null,
-            ];
-
-            if ($request->hasFile('image')) {
-                if ($user->profile && $user->profile->image) {
-                    Storage::disk('public')->delete($user->profile->image);
-                }
-                $profileData['image'] = $request->file('image')->store('users', 'public');
-            } elseif ($request->input('remove_image') == '1') {
-                if ($user->profile && $user->profile->image) {
-                    Storage::disk('public')->delete($user->profile->image);
-                }
-                $profileData['image'] = null;
-            } else {
-                $profileData['image'] = $user->profile ? $user->profile->image : null;
-            }
-
-            if ($user->profile) {
-                $user->profile->update($profileData);
-            } else {
-                $user->profile()->create($profileData);
-            }
-
-            return response()->json([
-                'data' => User::with('profile')->find($user->id),
-                'message' => 'User updated successfully'
-            ]);
-        });
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user->load('profile')
+        ], 200);
     }
 
     /**

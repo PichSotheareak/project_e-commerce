@@ -234,7 +234,7 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const api_url = 'http://127.0.0.1:8000/api/auth';
+    const api_url = 'https://su8.beynak.us/api/auth';
 
     document.getElementById('loginForm').addEventListener('submit', function (e) {
         e.preventDefault();

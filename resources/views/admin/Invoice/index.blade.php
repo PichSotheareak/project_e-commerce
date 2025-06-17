@@ -340,7 +340,7 @@
         data() {
             return {
                 invoiceList: [],
-                api_url: 'http://127.0.0.1:8000',
+                api_url: 'https://su8.beynak.us',
                 filteredInvoiceList: [],
                 customers: [],
                 users: [],

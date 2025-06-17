@@ -3,6 +3,36 @@
     [v-cloak] {
         display: none;
     }
+    .image-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .profile-photo {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: red;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        padding: 5px;
+        cursor: pointer;
+        font-size: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .remove-btn i {
+        pointer-events: none; /* So only the button responds to click */
+    }
+
 </style>
 @section('content')
     <div id="app" v-cloak>
@@ -206,7 +236,7 @@
                             <div v-if="imageSrc" class="text-center">
                                 <h6 class="text-muted mb-4 d-flex fw-bold">Customer Image</h6>
                                 <div class="image-container">
-                                    <img :src="imageSrc" alt="Customer Image" class="profile-photo">
+                                    <img :src="imageSrc" alt="Customer Image" class="profile-photo" style="width: 100px; height: 100px; object-fit: cover;">
                                     <button type="button" class="remove-btn" @click="removeImage" title="Remove image">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
@@ -337,7 +367,7 @@
             data() {
                 return {
                     customerList: [],
-                    api_url: 'http://127.0.0.1:8000',
+                    api_url: 'https://su8.beynak.us',
                     filteredCustomerList: [],
                     currentCustomer: null,
                     viewCustomer: null,
@@ -539,7 +569,10 @@
                     this.imageSrc = null;
                     this.selectedFile = null;
                     this.removeImage = true;
-                    if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+                    if (this.$refs.fileInput) {
+                        this.$refs.fileInput.value = null; // Use null for better compatibility
+                    }
+                    console.log('Image removed - imageSrc:', this.imageSrc, 'selectedFile:', this.selectedFile, 'removeImage:', this.removeImage);
                 },
                 triggerFileInput() {
                     this.$refs.fileInput.click();
