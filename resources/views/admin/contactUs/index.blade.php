@@ -3,7 +3,7 @@
     [v-cloak] {
         display: none;
     }
-</style>
+    
 @section('content')
 <div id="app" v-cloak>
     <div class="container-fluid mt-4">
