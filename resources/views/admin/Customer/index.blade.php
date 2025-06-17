@@ -367,7 +367,7 @@
             data() {
                 return {
                     customerList: [],
-                    api_url: 'https://su8.beynak.us',
+                    api_url: window.location.origin,
                     filteredCustomerList: [],
                     currentCustomer: null,
                     viewCustomer: null,
